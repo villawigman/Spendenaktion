@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>🎁 Artikelliste</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;min-height:100vh;background:#fdf6ee;color:#3d2b1f}
+.page{padding:24px 16px 80px;max-width:1000px;margin:0 auto}
+#notif{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:999px;font-size:14px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;opacity:0;transition:opacity .3s;pointer-events:none;background:#3d2b1f;color:#fdf6ee}
+.header{text-align:center;margin-bottom:28px}
+.pill{display:inline-block;font-size:11px;letter-spacing:.15em;text-transform:uppercase;padding:4px 14px;border-radius:999px;margin-bottom:12px;font-family:sans-serif;color:white;background:#c97d4e}
+h1{font-size:clamp(24px,6vw,44px);font-weight:normal;margin-bottom:8px}
+.subtitle{font-size:14px;font-style:italic;margin-bottom:10px;color:#8c6a52}
+.stats{font-size:13px;font-family:sans-serif;margin-bottom:14px;color:#8c6a52}
+.btn-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+button{cursor:pointer;font-family:Georgia,serif;border:none}
+.name-card{border-radius:16px;padding:20px 24px;max-width:440px;margin:0 auto 24px;box-shadow:0 4px 20px rgba(0,0,0,.08);background:white;border:1.5px solid #e8d5c4}
+.name-card p{font-size:16px;text-align:center;margin-bottom:12px}
+.input-row{display:flex;gap:8px}
+input{width:100%;padding:10px 14px;border-radius:10px;font-size:14px;font-family:Georgia,serif;outline:none;background:#fdf6ee;border:1.5px solid #e0c9b5;color:#333;margin-bottom:12px}
+.welcome-bar{display:flex;justify-content:center;align-items:center;gap:12px;border-radius:12px;padding:10px 20px;max-width:360px;margin:0 auto 24px;font-size:14px;background:white;border:1px solid #e8d5c4}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.card{border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 2px 12px rgba(0,0,0,.07);background:white;border:1.5px solid #e8d5c4}
+.card.mine{border:2px solid #c97d4e;background:#fff8f2;box-shadow:0 4px 20px rgba(201,125,78,.18)}
+.card.taken{opacity:.65;background:#f8f4f0}
+.card-img{width:100%;background:#f5ede4;display:flex;align-items:center;justify-content:center;padding:12px}
+.card-img img{width:100%;height:auto;max-height:220px;object-fit:contain;display:block;border-radius:6px}
+.card-emoji{width:100%;height:100px;display:flex;align-items:center;justify-content:center;font-size:44px;background:#f5e6d3}
+.card-body{flex:1;padding:14px 16px 8px}
+.card-name{font-size:17px;font-weight:normal;margin-bottom:5px;color:#3d2b1f}
+.card-desc{font-size:12px;font-style:italic;line-height:1.4;margin-bottom:8px;color:#8c6a52}
+.card-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.price-tag{font-size:11px;padding:3px 10px;border-radius:999px;font-family:sans-serif;background:#f5e6d3;color:#c97d4e}
+.product-link{font-size:11px;padding:3px 10px;border-radius:999px;color:#5b7ec9;background:#eef2fb;text-decoration:none;font-family:sans-serif}
+.card-footer{padding:10px 16px 14px}
+.card-status{font-size:12px;margin-bottom:8px}
+.card-actions{display:flex;gap:6px}
+.btn-accent{color:white;border-radius:9px;padding:8px 14px;font-size:12px;flex:1;border:none;cursor:pointer}
+.btn-outline{background:transparent;border-radius:9px;padding:8px 14px;font-size:12px;flex:1;cursor:pointer}
+.btn-icon{padding:7px 9px;border-radius:8px;font-size:13px;background:transparent;border:1px solid #e8d5c4;cursor:pointer}
+.add-card{border-radius:16px;min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:2px dashed #e8d5c4;color:#8c6a52}
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9000;padding:16px;backdrop-filter:blur(4px);background:rgba(0,0,0,.45)}
+.modal{background:white;border-radius:20px;padding:24px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal h2{font-size:20px;font-weight:normal;margin-bottom:16px;color:#222}
+.modal label{display:block;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-family:sans-serif}
+.modal-btns{display:flex;gap:10px;margin-top:10px}
+.btn-save{flex:1;padding:10px;border-radius:10px;border:none;color:white;font-family:Georgia,serif;font-weight:bold;cursor:pointer;font-size:14px}
+.btn-cancel{flex:1;padding:10px;border-radius:10px;border:1.5px solid #e0c9b5;background:transparent;color:#888;font-family:Georgia,serif;cursor:pointer}
+.err{color:#c0392b;font-size:12px;margin:-6px 0 10px;font-family:sans-serif}
+.upload-box{border:2px dashed #e0c9b5;border-radius:10px;padding:14px;margin-bottom:12px;text-align:center;cursor:pointer;background:#fdf6ee}
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 18px}
+.swatch{border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid #eee}
+.swatch.active{border-width:2.5px}
+.swatch-inner{padding:10px 8px 8px;text-align:center}
+.swatch-dot{width:26px;height:26px;border-radius:50%;margin:0 auto 4px}
+.swatch-name{font-size:11px;font-family:sans-serif}
+.text-block{padding:16px;border-radius:12px;margin-bottom:4px;position:relative}
+.font-btn{padding:5px 10px;border-radius:7px;border:1.5px solid #e0c9b5;background:#fdf6ee;cursor:pointer;font-family:Georgia,serif;margin:2px}
+.font-btn.active{background:#c97d4e;color:white;border-color:#c97d4e}
+select{width:100%;padding:9px 13px;border-radius:10px;font-size:14px;font-family:Georgia,serif;outline:none;background:#fdf6ee;border:1.5px solid #e0c9b5;color:#333;margin-bottom:12px;cursor:pointer}
+textarea{width:100%;padding:10px 14px;border-radius:10px;font-size:14px;font-family:Georgia,serif;outline:none;background:#fdf6ee;border:1.5px solid #e0c9b5;color:#333;margin-bottom:12px;resize:vertical;min-height:80px}
+.saving{display:inline-block;font-size:11px;padding:2px 12px;border-radius:999px;background:#f5e6d3;color:#c97d4e;font-family:sans-serif;margin-bottom:8px}
+.hblock{padding:16px 24px;text-align:center;position:relative}
+.hblock-edit{position:absolute;top:6px;right:6px;display:flex;gap:4px;opacity:0;transition:opacity .2s}
+.hblock:hover .hblock-edit{opacity:1}
+.color-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.color-dot{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0}
+.color-dot.active{border-color:#333}
+.color-input{width:36px;height:36px;border:none;padding:0;cursor:pointer;border-radius:8px;background:none}
+footer{text-align:center;margin-top:48px;font-size:11px;font-family:sans-serif;opacity:.4}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ================================================================
+// ⚙️ DEINE FIREBASE-KONFIGURATION — hier eintragen!
+// ================================================================
+const firebaseConfig = {
+  apiKey:            "AIzaSyAbv-K6HH9V8JVGc6q2kbz2kEqlNQoJXJY",
+  authDomain:        "spendenaktion-8fb9b.firebaseapp.com",
+  databaseURL:       "https://spendenaktion-8fb9b-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "spendenaktion-8fb9b",
+  storageBucket:     "spendenaktion-8fb9b.firebasestorage.app",
+  messagingSenderId: "987845431856",
+  appId:             "1:987845431856:web:f2ab90ede5f9781c8193f5"
+};
+// ================================================================
+
+const THEMES={
+  warm:{name:"🍂 Warm",bg:"#fdf6ee",ac:"#c97d4e",card:"#fff",text:"#3d2b1f",sub:"#8c6a52",tag:"#f5e6d3",brd:"#e8d5c4"},
+  rose:{name:"🌸 Rosa",bg:"#fff5f7",ac:"#e05c8a",card:"#fff",text:"#3d1a24",sub:"#b06080",tag:"#fce4ec",brd:"#f0c8d8"},
+  sage:{name:"🌿 Grün",bg:"#f3f8f4",ac:"#4a8c5c",card:"#fff",text:"#1a3324",sub:"#567a60",tag:"#d8eedf",brd:"#c0ddc8"},
+  sky:{name:"🩵 Blau",bg:"#f0f6ff",ac:"#3a6fd8",card:"#fff",text:"#0d1f40",sub:"#4a6090",tag:"#dce8fa",brd:"#c0d4f0"},
+  dark:{name:"🌑 Dunkel",bg:"#18181b",ac:"#f59e0b",card:"#27272a",text:"#f4f4f5",sub:"#a1a1aa",tag:"#3f3f46",brd:"#52525b"},
+  candy:{name:"🍬 Candy",bg:"#fff9fe",ac:"#a855f7",card:"#fff",text:"#2e1a47",sub:"#7c3aed",tag:"#f3e8ff",brd:"#e0c8f8"}
+};
+
+let data={gifts:[],claims:{},adminPassword:"",design:{theme:"warm",headerText:"🎁 Artikelliste",headerSub:"Wähle ein Geschenk und markiere es als deins",bgUrl:""}};
+let userName="",isAdmin=false,notifTimer=null,isSaving=false;
+let db,dataRef;
+
+// Admin-Session
+function restoreAdmin(){try{const s=localStorage.getItem("gl-adm");if(s&&data.adminPassword&&s===data.adminPassword)isAdmin=true;}catch(e){}}
+function saveAdmin(){try{localStorage.setItem("gl-adm",data.adminPassword);}catch(e){}}
+function logoutAdmin(){isAdmin=false;try{localStorage.removeItem("gl-adm");}catch(e){}}
+
+// Prüfe ob Config eingetragen wurde
+function configOk(){return firebaseConfig.apiKey!=="DEIN_API_KEY";}
+
+async function init(){
+  if(!configOk()){renderSetup();return;}
+  showLoader();
+  try{
+    const app=initializeApp(firebaseConfig);
+    db=getDatabase(app);
+    dataRef=ref(db,"geschenkeliste");
+    // Echtzeit-Updates
+    onValue(dataRef,(snap)=>{
+      const val=snap.val();
+      if(val){
+        data.gifts=val.gifts||[];
+        data.claims=val.claims||{};
+        data.adminPassword=val.adminPassword||"";
+        data.design=val.design||data.design;
+      }
+      restoreAdmin();
+      render();
+    });
+  }catch(e){
+    document.getElementById("root").innerHTML=`<div style="text-align:center;padding:60px 20px;font-family:sans-serif;"><div style="font-size:36px;margin-bottom:12px;">⚠️</div><p style="color:#c0392b;font-size:16px;margin-bottom:6px;">Verbindungsfehler</p><p style="color:#888;font-size:13px;">${e.message}</p></div>`;
+  }
+}
+
+async function saveData(){
+  if(!dataRef)return;
+  isSaving=true;renderSaving();
+  try{await set(dataRef,data);}catch(e){showNotif("❌ Speicherfehler");}
+  isSaving=false;renderSaving();
+}
+
+function renderSaving(){const el=document.getElementById("saving-badge");if(el)el.style.display=isSaving?"inline-block":"none";}
+function showNotif(msg){const el=document.getElementById("notif");if(!el)return;const t=THEMES[data.design.theme]||THEMES.warm;el.style.background=t.text;el.style.color=t.bg;el.textContent=msg;el.style.opacity="1";clearTimeout(notifTimer);notifTimer=setTimeout(()=>{el.style.opacity="0";},2500);}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function showLoader(){document.getElementById("root").innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:14px;"><div style="width:44px;height:44px;border:3px solid #f0d9c8;border-top:3px solid #c97d4e;border-radius:50%;animation:spin .8s linear infinite;"></div><p style="font-family:Georgia,serif;color:#c97d4e;">Verbinde mit Datenbank...</p></div>`;}
+function doSetName(){const v=(document.getElementById("nameInp")?.value||"").trim();if(v){userName=v;render();}}
+
+async function doClaim(id){if(!userName){showNotif("Bitte gib deinen Namen ein!");return;}data.claims[id]=userName;await saveData();showNotif("🎉 Reserviert!");}
+async function doUnclaim(id){delete data.claims[id];await saveData();showNotif("↩️ Freigegeben");}
+async function doRemove(id){if(!confirm("Artikel entfernen?"))return;data.gifts=data.gifts.filter(g=>g.id!==id);delete data.claims[id];await saveData();showNotif("🗑️ Entfernt");}
+
+function render(){
+  const t=THEMES[data.design.theme]||THEMES.warm,d=data.design;
+  const claimed=Object.keys(data.claims).length;
+  document.body.style.background=d.bgUrl?`url(${d.bgUrl}) center/cover fixed`:t.bg;
+  document.body.style.color=t.text;
+  document.title=d.headerText||"Artikelliste";
+
+  let adminHtml="";
+  if(isAdmin){adminHtml=`<div style="display:inline-flex;align-items:center;gap:8px;background:${t.tag};border:1.5px solid ${t.ac};color:${t.ac};border-radius:999px;padding:5px 14px;font-size:12px;font-family:sans-serif;">👑 Admin<button onclick="logoutAdmin();render();" style="background:transparent;border:1px solid ${t.ac};border-radius:7px;padding:2px 8px;font-size:11px;color:${t.ac};cursor:pointer;">Abmelden</button></div><button onclick="openDesign();" style="background:${t.ac};color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🎨 Design</button>`;}
+  else if(!data.adminPassword){adminHtml=`<button onclick="openModal('setpw');" style="background:${t.text};color:${t.bg};border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🔐 Admin-Passwort festlegen</button>`;}
+  else{adminHtml=`<button onclick="openModal('login');" style="background:transparent;color:${t.sub};border:1px solid ${t.brd};border-radius:999px;padding:7px 16px;font-size:13px;cursor:pointer;border:1px solid ${t.brd};">🔑 Als Admin anmelden</button>`;}
+
+  const nameBar=!userName
+    ?`<div class="name-card"><p>Wie heißt du? 👋</p><div class="input-row"><input id="nameInp" placeholder="Dein Name..." style="margin-bottom:0;" onkeydown="if(event.key==='Enter')doSetName();"/><button onclick="doSetName();" style="background:${t.ac};color:white;white-space:nowrap;padding:9px 18px;border-radius:10px;font-weight:bold;font-size:14px;border:none;">Los!</button></div></div>`
+    :`<div class="welcome-bar">👤 Hallo, <strong>${esc(userName)}</strong>!<button onclick="userName='';render();" style="background:transparent;border:1px solid ${t.brd};border-radius:7px;padding:3px 10px;font-size:11px;color:${t.sub};cursor:pointer;">Wechseln</button></div>`;
+
+  // Combine gifts and text blocks, sorted by order
+const allItems=[...data.gifts.map(g=>({...g,_type:'gift'})),...(data.textBlocks||[]).map(b=>({...b,_type:'text'}))].sort((a,b)=>(a.order||0)-(b.order||0));
+const cards=allItems.map(item=>{
+  if(item._type==='text'){
+    const fonts={'Georgia,serif':'Georgia','Arial,sans-serif':'Arial','Verdana,sans-serif':'Verdana','Courier New,monospace':'Courier','Palatino,serif':'Palatino'};
+    const editBtn=isAdmin?`<button class="btn-icon" onclick="openModal('text','${item.id}');" style="position:absolute;top:8px;right:36px;border:1px solid ${t.brd};">✏️</button><button class="btn-icon" onclick="doRemoveText('${item.id}');" style="position:absolute;top:8px;right:4px;border:1px solid ${t.brd};">🗑️</button>`:'';
+    return `<div class="text-block" style="background:${t.card};border:1.5px solid ${t.brd};grid-column:1/-1;${editBtn?'padding-right:80px;':''}">${editBtn}<p style="font-family:${item.fontFamily||'Georgia,serif'};font-size:${item.fontSize||'16px'};font-weight:${item.bold?'bold':'normal'};font-style:${item.italic?'italic':'normal'};color:${t.text};white-space:pre-wrap;line-height:1.6;">${esc(item.text||'')}</p></div>`;
+  }
+const g=item;
+    const claimer=data.claims[g.id],isMine=claimer===userName,isTaken=!!claimer&&!isMine;
+    const cardBgColor=isMine?t.tag:isTaken?"#f8f4f0":(g.cardBg||t.card);
+    let imgHtml=g.imageUrl?`<div class="card-img"><img src="${esc(g.imageUrl)}" alt="${esc(g.name)}"/></div>`:`<div class="card-emoji">${esc(g.emoji||"🎁")}</div>`;
+    let meta="";
+    if(g.price)meta+=`<span class="price-tag">${esc(g.price)}</span>`;
+    if(g.productUrl)meta+=`<a class="product-link" href="${esc(g.productUrl)}" target="_blank">🔗 Zum Produkt</a>`;
+    let status=isMine?`<div class="card-status" style="color:${t.ac};font-weight:bold;">✅ Du spendest das!</div>`:isTaken?`<div class="card-status" style="color:${t.sub};">🔒 ${esc(claimer)} spendet das</div>`:`<div class="card-status" style="color:#4caf79;">✨ Noch frei</div>`;
+    let acts="";
+    if(!claimer&&userName)acts+=`<button class="btn-accent" onclick="doClaim(${g.id});" style="background:${t.ac};">Ich spende das!</button>`;
+    if(isMine)acts+=`<button class="btn-outline" onclick="doUnclaim(${g.id});" style="border:1.5px solid ${t.ac};color:${t.ac};">Freigeben</button>`;
+    if(isAdmin){acts+=`<button class="btn-icon" onclick="openModal('gift',${g.id});">✏️</button>`;acts+=`<button class="btn-icon" onclick="doRemove(${g.id});">🗑️</button>`;}
+    // Pick readable text color based on card bg brightness
+const hex=(g.cardBg||'#ffffff').replace('#','');
+const r=parseInt(hex.substr(0,2),16),gg=parseInt(hex.substr(2,2),16),b2=parseInt(hex.substr(4,2),16);
+const brightness=(r*299+gg*587+b2*114)/1000;
+const cardTextColor=brightness<128?'#ffffff':'#3d2b1f';
+return `<div class="card${isMine?" mine":isTaken?" taken":""}" style="background:${cardBgColor};">${imgHtml}<div class="card-body"><div class="card-name" style="color:${cardTextColor};">${esc(g.name)}</div>${g.description?`<div class="card-desc" style="color:${brightness<128?'rgba(255,255,255,0.8)':'#8c6a52'};">${esc(g.description)}</div>`:""}<div class="card-meta">${meta}</div></div><div class="card-footer">${status}<div class="card-actions">${acts}</div></div></div>`;
+  }).join("")+(isAdmin?`<div class="add-card" onclick="openModal('gift',0);"><div style="font-size:32px;color:${t.ac};margin-bottom:6px;">+</div><div style="font-size:13px;font-style:italic;">Artikel hinzufügen</div></div><div class="add-card" onclick="openModal('text',0);" style="border-color:${t.brd};color:${t.sub};"><div style="font-size:32px;color:${t.ac};margin-bottom:6px;">T</div><div style="font-size:13px;font-style:italic;">Textblock hinzufügen</div></div>`:"");
+
+  // Render header blocks
+  // Combine text and image header blocks by order
+  const allHeaderBlocks=[...(data.headerBlocks||[]).map(b=>({...b,_htype:'text'})),...(data.headerImgs||[]).map(b=>({...b,_htype:'img'}))].sort((a,b)=>(a.order||0)-(b.order||0));
+  const hblocks=allHeaderBlocks.map((b)=>{
+    if(b._htype==='img'){
+      const editBtns=isAdmin?`<div class="hblock-edit"><button class="btn-icon" onclick="openModal('himg','${b.id}');" style="background:white;font-size:12px;">✏️</button><button class="btn-icon" onclick="removeHImg('${b.id}');" style="background:white;font-size:12px;">🗑️</button></div>`:'';
+      const imgs=b.images||[];
+      const h=b.imgHeight||'200px';
+      const rounded=b.rounded?'12px':'4px';
+      let galleryHtml='';
+      if(b.layout==='grid'){
+        galleryHtml=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(${h==='100px'?'80px':h==='200px'?'160px':'240px'},1fr));gap:8px;">${imgs.map(src=>`<img src="${esc(src)}" style="width:100%;height:${h};object-fit:cover;border-radius:${rounded};display:block;"/>`).join('')}</div>`;
+      } else if(b.layout==='single'){
+        galleryHtml=imgs.map(src=>`<img src="${esc(src)}" style="width:100%;height:auto;max-height:${h==='100px'?'200px':h==='200px'?'350px':'500px'};object-fit:contain;border-radius:${rounded};display:block;margin:0 auto 8px;"/>`).join('');
+      } else {
+        galleryHtml=`<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;">${imgs.map(src=>`<img src="${esc(src)}" style="height:${h};width:auto;flex-shrink:0;object-fit:cover;border-radius:${rounded};display:block;"/>`).join('')}</div>`;
+      }
+      return `<div class="hblock" style="background:${b.bgColor||'transparent'};border-radius:12px;margin-bottom:8px;padding:12px;">${editBtns}${galleryHtml}</div>`;
+    }
+    const editBtns=isAdmin?`<div class="hblock-edit"><button class="btn-icon" onclick="openModal('hblock','${b.id}');" style="background:white;font-size:12px;">✏️</button><button class="btn-icon" onclick="removeHBlock('${b.id}');" style="background:white;font-size:12px;">🗑️</button></div>`:'';
+    return `<div class="hblock" style="background:${b.bgColor||'transparent'};border-radius:${b.bgColor&&b.bgColor!=='transparent'?'12px':'0'};margin-bottom:${b.bgColor&&b.bgColor!=='transparent'?'8px':'0'};">${editBtns}<p style="font-family:${b.fontFamily||'Georgia,serif'};font-size:${b.fontSize||'16px'};font-weight:${b.bold?'bold':'normal'};font-style:${b.italic?'italic':'normal'};color:${b.color||t.text};line-height:1.5;white-space:pre-wrap;">${esc(b.text||'')}</p></div>`;
+  }).join('');
+  const addHBlockBtn=isAdmin?`<div style="display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap;"><button onclick="openModal('hblock',0);" style="background:transparent;border:2px dashed ${t.brd};border-radius:10px;padding:6px 16px;font-size:12px;color:${t.sub};cursor:pointer;font-family:Georgia,serif;">T+ Textblock</button><button onclick="openModal('himg',0);" style="background:transparent;border:2px dashed ${t.brd};border-radius:10px;padding:6px 16px;font-size:12px;color:${t.sub};cursor:pointer;font-family:Georgia,serif;">🖼️ Bildblock</button></div>`:'';
+
+  document.getElementById("root").innerHTML=`
+    <div id="notif"></div>
+    ${d.bgUrl?`<div style="position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:0;pointer-events:none;"></div>`:""}
+    <div class="page">
+      <header class="header">
+        ${hblocks||`<div class="pill">Gemeinsame Wunschliste</div><h1 style="color:${d.bgUrl?"#fff":t.text};">${esc(d.headerText)}</h1><div class="subtitle">${esc(d.headerSub)}</div>`}
+        ${addHBlockBtn}
+        <div id="saving-badge" class="saving" style="display:none;">⏳ Speichern...</div>
+        <div class="stats" style="margin-top:8px;">${data.gifts.length} Artikel · ${claimed} vergeben · ${data.gifts.length-claimed} frei</div>
+        <div class="btn-row">${adminHtml}</div>
+      </header>
+      ${nameBar}
+      <div class="grid">${cards}</div>
+      <footer>🔄 Echtzeit-Updates · Kein Login für Freunde nötig</footer>
+    </div>`;
+}
+
+function closeModal(){document.getElementById("modal-overlay")?.remove();}
+function selColor(dot,hiddenId,color){
+  document.getElementById(hiddenId).value=color;
+  dot.closest('.color-row').querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));
+  dot.classList.add('active');
+}
+function selColorCustom(hiddenId,color){
+  document.getElementById(hiddenId).value=color;
+  const row=document.getElementById(hiddenId)?.closest?document.getElementById(hiddenId+'-picker')?.closest('.color-row'):null;
+  if(row)row.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));
+}
+async function doSaveHBlock(){
+  const text=document.getElementById("m-htext")?.value||"";
+  if(!text.trim()){showNotif("Bitte Text eingeben!");return;}
+  const hid=document.getElementById("m-hid")?.value;
+  const block={id:hid||String(Date.now()),text,fontFamily:document.getElementById("m-hfont")?.value||"Georgia,serif",fontSize:document.getElementById("m-hsize")?.value||"28px",bold:document.getElementById("m-hbold")?.classList.contains("active")||false,italic:document.getElementById("m-hitalic")?.classList.contains("active")||false,color:document.getElementById("m-hcolor")?.value||"#3d2b1f",bgColor:document.getElementById("m-hbgcolor")?.value||"transparent",order:hid?((data.headerBlocks||[]).find(b=>b.id===hid)?.order||0):Date.now()};
+  if(!data.headerBlocks)data.headerBlocks=[];
+  if(hid){data.headerBlocks=data.headerBlocks.map(b=>b.id===hid?block:b);showNotif("✏️ Textblock aktualisiert!");}
+  else{data.headerBlocks.push(block);showNotif("📝 Textblock hinzugefügt!");}
+  closeModal();await saveData();
+}
+function handleHImgUpload(input){
+  const files=Array.from(input.files);if(!files.length)return;
+  const loading=document.getElementById("m-hi-loading"),lbl=document.getElementById("m-hi-lbl");
+  if(loading)loading.style.display="block";
+  let processed=0;
+  const existing=JSON.parse(document.getElementById("m-hiimgs")?.value||"[]");
+  const newImgs=[...existing];
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=800;let w=img.width,h=img.height;
+        if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+        const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+        canvas.getContext("2d").drawImage(img,0,0,w,h);
+        newImgs.push(canvas.toDataURL("image/jpeg",.8));
+        processed++;
+        if(processed===files.length){
+          document.getElementById("m-hiimgs").value=JSON.stringify(newImgs);
+          if(loading)loading.style.display="none";
+          if(lbl)lbl.textContent=`✅ ${newImgs.length} Bild(er) ausgewählt`;
+          // Update preview
+          const prev=document.getElementById("m-hiprev");
+          if(prev)prev.innerHTML=newImgs.map((src,i)=>`<div style="position:relative;display:inline-block;margin:4px;"><img src="${src}" style="height:80px;width:auto;object-fit:cover;border-radius:6px;border:1px solid #ddd;"/><button onclick="removeHImgItem(${i});" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">✕</button></div>`).join('');
+        }
+      };img.src=e.target.result;
+    };reader.readAsDataURL(file);
+  });
+}
+function removeHImgItem(idx){
+  const imgs=JSON.parse(document.getElementById("m-hiimgs")?.value||"[]");
+  imgs.splice(idx,1);
+  document.getElementById("m-hiimgs").value=JSON.stringify(imgs);
+  const prev=document.getElementById("m-hiprev");
+  if(prev)prev.innerHTML=imgs.map((src,i)=>`<div style="position:relative;display:inline-block;margin:4px;"><img src="${src}" style="height:80px;width:auto;object-fit:cover;border-radius:6px;border:1px solid #ddd;"/><button onclick="removeHImgItem(${i});" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">✕</button></div>`).join('');
+  const lbl=document.getElementById("m-hi-lbl");
+  if(lbl)lbl.textContent=imgs.length?`✅ ${imgs.length} Bild(er) ausgewählt`:"📁 JPG oder PNG auswählen";
+}
+function clearHImg(){document.getElementById("m-hiimgs").value="[]";const prev=document.getElementById("m-hiprev");if(prev)prev.innerHTML="";const lbl=document.getElementById("m-hi-lbl");if(lbl)lbl.textContent="📁 JPG oder PNG auswählen";document.getElementById("m-hifile").value="";}
+async function doSaveHImg(){
+  const images=JSON.parse(document.getElementById("m-hiimgs")?.value||"[]");
+  if(!images.length){showNotif("Bitte mindestens ein Bild auswählen!");return;}
+  const hid=document.getElementById("m-hiid")?.value;
+  const block={id:hid||String(Date.now()),images,layout:document.getElementById("m-hilayout")?.value||"row",imgHeight:document.getElementById("m-hiheight")?.value||"200px",rounded:document.getElementById("m-hirounded")?.classList.contains("active")||false,bgColor:document.getElementById("m-hibgcolor")?.value||"transparent",order:hid?((data.headerImgs||[]).find(b=>b.id===hid)?.order||0):Date.now()};
+  if(!data.headerImgs)data.headerImgs=[];
+  if(hid){data.headerImgs=data.headerImgs.map(b=>b.id===hid?block:b);showNotif("✏️ Bildblock aktualisiert!");}
+  else{data.headerImgs.push(block);showNotif("🖼️ Bildblock hinzugefügt!");}
+  closeModal();await saveData();
+}
+async function removeHImg(id){if(!confirm("Bildblock entfernen?"))return;data.headerImgs=(data.headerImgs||[]).filter(b=>b.id!==id);await saveData();showNotif("🗑️ Entfernt");}
+async function removeHBlock(id){if(!confirm("Textblock entfernen?"))return;data.headerBlocks=(data.headerBlocks||[]).filter(b=>b.id!==id);await saveData();showNotif("🗑️ Entfernt");}
+function selSize(btn,id,size){
+  const targetId=id||"m-tsize";
+  const el=document.getElementById(targetId);
+  if(el)el.value=size;
+  // Only deactivate buttons in same container
+  const container=btn.closest("div");
+  if(container)container.querySelectorAll(".font-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+}
+function toggleStyle(id){const btn=document.getElementById(id);btn.classList.toggle("active");}
+async function doSaveText(){
+  const text=document.getElementById("m-ttext")?.value||"";
+  if(!text.trim()){showNotif("Bitte Text eingeben!");return;}
+  const tid=document.getElementById("m-tid")?.value;
+  const block={id:tid||String(Date.now()),text,fontFamily:document.getElementById("m-tfont")?.value||"Georgia,serif",fontSize:document.getElementById("m-tsize")?.value||"16px",bold:document.getElementById("m-tbold")?.classList.contains("active")||false,italic:document.getElementById("m-titalic")?.classList.contains("active")||false,order:tid?((data.textBlocks||[]).find(b=>b.id===tid)?.order||0):Date.now()};
+  if(!data.textBlocks)data.textBlocks=[];
+  if(tid){data.textBlocks=data.textBlocks.map(b=>b.id===tid?block:b);showNotif("✏️ Text aktualisiert!");}
+  else{data.textBlocks.push(block);showNotif("📝 Textblock hinzugefügt!");}
+  closeModal();await saveData();
+}
+async function doRemoveText(id){if(!confirm("Textblock entfernen?"))return;data.textBlocks=(data.textBlocks||[]).filter(b=>b.id!==id);await saveData();showNotif("🗑️ Entfernt");}
+function openModal(type,giftId){
+  const t=THEMES[data.design.theme]||THEMES.warm;
+  let body="";
+  if(type==="login"){body=`<h2>🔑 Admin-Anmeldung</h2><label>Passwort</label><input type="password" id="m-pw" placeholder="Passwort..." onkeydown="if(event.key==='Enter')doLogin();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doLogin();">Anmelden</button></div>`;}
+  else if(type==="setpw"){body=`<h2>🔐 Admin-Passwort</h2><label>Neues Passwort (min. 4 Zeichen)</label><input type="password" id="m-pw1" placeholder="Passwort..."/><label>Wiederholen</label><input type="password" id="m-pw2" placeholder="Wiederholen..." onkeydown="if(event.key==='Enter')doSetPw();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doSetPw();">Festlegen</button></div>`;}
+  else if(type==="text"){
+    const b=giftId?((data.textBlocks||[]).find(x=>x.id===giftId)):null;
+    const v=b||{text:"",fontFamily:"Georgia,serif",fontSize:"16px",bold:false,italic:false};
+    body=`<h2>${b?"✏️ Text bearbeiten":"📝 Textblock"}</h2>
+      <input type="hidden" id="m-tid" value="${b?b.id:""}"/>
+      <label>Text</label>
+      <textarea id="m-ttext" placeholder="Hier deinen Text eingeben...">${esc(v.text)}</textarea>
+      <label>Schriftart</label>
+      <select id="m-tfont">
+        <option value="Georgia,serif" ${v.fontFamily==="Georgia,serif"?"selected":""}>Georgia (klassisch)</option>
+        <option value="Arial,sans-serif" ${v.fontFamily==="Arial,sans-serif"?"selected":""}>Arial (modern)</option>
+        <option value="Verdana,sans-serif" ${v.fontFamily==="Verdana,sans-serif"?"selected":""}>Verdana (rund)</option>
+        <option value="Courier New,monospace" ${v.fontFamily==="Courier New,monospace"?"selected":""}>Courier (maschinenschrift)</option>
+        <option value="Palatino,serif" ${v.fontFamily==="Palatino,serif"?"selected":""}>Palatino (elegant)</option>
+      </select>
+      <label>Schriftgröße</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+        <button class="font-btn${v.fontSize==="12px"?" active":""}" onclick="selSize(this,'m-tsize','12px');">Klein</button>
+        <button class="font-btn${v.fontSize==="16px"?" active":""}" onclick="selSize(this,'m-tsize','16px');">Normal</button>
+        <button class="font-btn${v.fontSize==="20px"?" active":""}" onclick="selSize(this,'m-tsize','20px');">Groß</button>
+        <button class="font-btn${v.fontSize==="26px"?" active":""}" onclick="selSize(this,'m-tsize','26px');">Titel</button>
+        <button class="font-btn${v.fontSize==="34px"?" active":""}" onclick="selSize(this,'m-tsize','34px');">Überschrift</button>
+      </div>
+      <input type="hidden" id="m-tsize" value="${v.fontSize||'16px'}"/>
+      <label>Stil</label>
+      <div style="display:flex;gap:6px;margin-bottom:16px;">
+        <button class="font-btn${v.bold?" active":""}" id="m-tbold" onclick="toggleStyle('m-tbold');" style="font-weight:bold;">F</button>
+        <button class="font-btn${v.italic?" active":""}" id="m-titalic" onclick="toggleStyle('m-titalic');" style="font-style:italic;">K</button>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
+        <button class="btn-save" style="background:${t.ac};" onclick="doSaveText();">${b?"Speichern":"Hinzufügen"}</button>
+      </div>`;
+  }
+  else if(type==="himg"){
+    const b=giftId?((data.headerImgs||[]).find(x=>x.id===giftId)):null;
+    const v=b||{images:[],layout:"row",gap:"8px",imgHeight:"200px",rounded:true,bgColor:"transparent"};
+    const imgs=v.images||[];
+    const bgColors=["transparent","#fdf6ee","#fff5f7","#f3f8f4","#f0f6ff","#fff9fe","#3d2b1f","#f5e6d3","#fce4ec","#d8eedf","#dce8fa"];
+    const bgDots=bgColors.map(c=>`<div class="color-dot${v.bgColor===c?" active":""}" style="background:${c==="transparent"?"repeating-linear-gradient(45deg,#ccc,#ccc 3px,#fff 3px,#fff 6px)":c};border-color:${v.bgColor===c?"#333":"#ddd"};" onclick="selColor(this,'m-hibgcolor','${c}');"></div>`).join('');
+    const prevImgs=imgs.map((src,i)=>`<div style="position:relative;display:inline-block;margin:4px;"><img src="${esc(src)}" style="height:80px;width:auto;object-fit:cover;border-radius:6px;border:1px solid #ddd;"/><button onclick="removeHImgItem(${i});" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">✕</button></div>`).join('');
+    body=`<h2>${b?"✏️ Galerie bearbeiten":"🖼️ Neue Bildergalerie"}</h2>
+      <input type="hidden" id="m-hiid" value="${b?b.id:""}"/>
+      <input type="hidden" id="m-hiimgs" value="${esc(JSON.stringify(imgs))}"/>
+      <label>📷 Bilder hinzufügen (mehrere möglich)</label>
+      <div class="upload-box" onclick="document.getElementById('m-hifile').click();">
+        <div id="m-hi-lbl" style="font-size:13px;color:#8c6a52;">📁 JPG oder PNG auswählen (mehrere gleichzeitig möglich)</div>
+        <input type="file" id="m-hifile" accept="image/*" multiple style="display:none;" onchange="handleHImgUpload(this);"/>
+      </div>
+      <div id="m-hi-loading" style="display:none;text-align:center;padding:8px;font-size:13px;color:#8c6a52;">⏳ Wird verarbeitet...</div>
+      <div id="m-hiprev" style="display:flex;flex-wrap:wrap;margin-bottom:12px;min-height:${imgs.length?'20px':'0'}">${prevImgs}</div>
+      <label>Anordnung</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <button class="font-btn${(v.layout||'row')==='row'?" active":""}" onclick="selSize(this,'m-hilayout','row');">↔ Nebeneinander</button>
+        <button class="font-btn${v.layout==='grid'?" active":""}" onclick="selSize(this,'m-hilayout','grid');">⊞ Raster</button>
+        <button class="font-btn${v.layout==='single'?" active":""}" onclick="selSize(this,'m-hilayout','single');">☐ Einzeln groß</button>
+      </div>
+      <input type="hidden" id="m-hilayout" value="${v.layout||'row'}"/>
+      <label>Bildhöhe</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+        <button class="font-btn${v.imgHeight==="100px"?" active":""}" onclick="selSize(this,'m-hiheight','100px');">Klein</button>
+        <button class="font-btn${v.imgHeight==="200px"?" active":""}" onclick="selSize(this,'m-hiheight','200px');">Mittel</button>
+        <button class="font-btn${v.imgHeight==="300px"?" active":""}" onclick="selSize(this,'m-hiheight','300px');">Groß</button>
+        <button class="font-btn${v.imgHeight==="100%"?" active":""}" onclick="selSize(this,'m-hiheight','100%');">Original</button>
+      </div>
+      <input type="hidden" id="m-hiheight" value="${v.imgHeight||'200px'}"/>
+      <label>Ecken</label>
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <button class="font-btn${v.rounded?" active":""}" id="m-hirounded" onclick="toggleStyle('m-hirounded');">Abgerundet</button>
+      </div>
+      <label>Hintergrundfarbe</label>
+      <div class="color-row">${bgDots}<input type="color" class="color-input" id="m-hibgcolor-picker" value="${v.bgColor&&v.bgColor!=="transparent"?v.bgColor:"#ffffff"}" oninput="selColorCustom('m-hibgcolor',this.value);"/></div>
+      <input type="hidden" id="m-hibgcolor" value="${v.bgColor||'transparent'}"/>
+      <div class="modal-btns" style="margin-top:14px;">
+        <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
+        <button class="btn-save" style="background:${t.ac};" onclick="doSaveHImg();">${b?"Speichern":"Hinzufügen"}</button>
+      </div>`;
+  }
+  else if(type==="hblock"){
+    const b=giftId?((data.headerBlocks||[]).find(x=>x.id===giftId)):null;
+    const v=b||{text:"",fontFamily:"Georgia,serif",fontSize:"28px",bold:false,italic:false,color:"#3d2b1f",bgColor:"transparent"};
+    const textColors=["#3d2b1f","#ffffff","#c97d4e","#4a8c5c","#3a6fd8","#e05c8a","#a855f7","#f59e0b","#000000"];
+    const bgColors=["transparent","#fdf6ee","#fff5f7","#f3f8f4","#f0f6ff","#fff9fe","#3d2b1f","#f5e6d3","#fce4ec","#d8eedf","#dce8fa"];
+    const tcDots=textColors.map(c=>`<div class="color-dot${v.color===c?" active":""}" style="background:${c==="transparent"?"repeating-linear-gradient(45deg,#ccc,#ccc 3px,#fff 3px,#fff 6px)":c};border-color:${v.color===c?"#333":"#ddd"};" onclick="selColor(this,'m-hcolor','${c}');"></div>`).join('');
+    const bgDots=bgColors.map(c=>`<div class="color-dot${v.bgColor===c?" active":""}" style="background:${c==="transparent"?"repeating-linear-gradient(45deg,#ccc,#ccc 3px,#fff 3px,#fff 6px)":c};border-color:${v.bgColor===c?"#333":"#ddd"};" onclick="selColor(this,'m-hbgcolor','${c}');"></div>`).join('');
+    body=`<h2>${b?"✏️ Textblock bearbeiten":"📝 Neuer Textblock"}</h2>
+      <input type="hidden" id="m-hid" value="${b?b.id:""}"/>
+      <label>Text</label>
+      <textarea id="m-htext" placeholder="z.B. Herzlich Willkommen! 🎉" style="min-height:80px;">${esc(v.text)}</textarea>
+      <label>Schriftart</label>
+      <select id="m-hfont" style="margin-bottom:12px;">
+        <option value="Georgia,serif" ${v.fontFamily==="Georgia,serif"?"selected":""}>Georgia (klassisch)</option>
+        <option value="Arial,sans-serif" ${v.fontFamily==="Arial,sans-serif"?"selected":""}>Arial (modern)</option>
+        <option value="Verdana,sans-serif" ${v.fontFamily==="Verdana,sans-serif"?"selected":""}>Verdana (rund)</option>
+        <option value="Courier New,monospace" ${v.fontFamily==="Courier New,monospace"?"selected":""}>Courier (Schreibmaschine)</option>
+        <option value="Palatino,serif" ${v.fontFamily==="Palatino,serif"?"selected":""}>Palatino (elegant)</option>
+        <option value="Impact,sans-serif" ${v.fontFamily==="Impact,sans-serif"?"selected":""}>Impact (fett/stark)</option>
+      </select>
+      <label>Schriftgröße</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+        <button class="font-btn${v.fontSize==="13px"?" active":""}" onclick="selSize(this,'m-hsize','13px');">Winzig</button>
+        <button class="font-btn${v.fontSize==="16px"?" active":""}" onclick="selSize(this,'m-hsize','16px');">Klein</button>
+        <button class="font-btn${v.fontSize==="20px"?" active":""}" onclick="selSize(this,'m-hsize','20px');">Normal</button>
+        <button class="font-btn${v.fontSize==="28px"?" active":""}" onclick="selSize(this,'m-hsize','28px');">Groß</button>
+        <button class="font-btn${v.fontSize==="36px"?" active":""}" onclick="selSize(this,'m-hsize','36px');">Titel</button>
+        <button class="font-btn${v.fontSize==="48px"?" active":""}" onclick="selSize(this,'m-hsize','48px');">Riesig</button>
+      </div>
+      <input type="hidden" id="m-hsize" value="${v.fontSize||'28px'}"/>
+      <label>Stil</label>
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <button class="font-btn${v.bold?" active":""}" id="m-hbold" onclick="toggleStyle('m-hbold');" style="font-weight:bold;">Fett</button>
+        <button class="font-btn${v.italic?" active":""}" id="m-hitalic" onclick="toggleStyle('m-hitalic');" style="font-style:italic;">Kursiv</button>
+      </div>
+      <label>Schriftfarbe</label>
+      <div class="color-row">${tcDots}<input type="color" class="color-input" id="m-hcolor-picker" value="${v.color&&v.color!=="transparent"?v.color:"#3d2b1f"}" oninput="selColorCustom('m-hcolor',this.value);"/></div>
+      <input type="hidden" id="m-hcolor" value="${v.color||'#3d2b1f'}"/>
+      <label>Hintergrundfarbe</label>
+      <div class="color-row">${bgDots}<input type="color" class="color-input" id="m-hbgcolor-picker" value="${v.bgColor&&v.bgColor!=="transparent"?v.bgColor:"#ffffff"}" oninput="selColorCustom('m-hbgcolor',this.value);"/></div>
+      <input type="hidden" id="m-hbgcolor" value="${v.bgColor||'transparent'}"/>
+      <div class="modal-btns" style="margin-top:14px;">
+        <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
+        <button class="btn-save" style="background:${t.ac};" onclick="doSaveHBlock();">${b?"Speichern":"Hinzufügen"}</button>
+      </div>`;
+  }
+  else if(type==="gift"){
+    const g=giftId?data.gifts.find(x=>x.id===giftId):null;
+    const v=g||{name:"",emoji:"🎁",price:"",description:"",imageUrl:"",productUrl:""};
+    body=`<h2>${g?"✏️ Bearbeiten":"🎁 Neuer Artikel"}</h2>
+      <input type="hidden" id="m-gid" value="${g?g.id:""}"/>
+      <label>Name *</label><input id="m-gname" value="${esc(v.name)}" placeholder="z.B. Kaffeemaschine"/>
+      <label>Emoji</label><input id="m-gemoji" value="${esc(v.emoji)}" placeholder="🎁" style="width:80px;"/>
+      <label>Preis</label><input id="m-gprice" value="${esc(v.price)}" placeholder="~50€"/>
+      <label>Beschreibung</label><input id="m-gdesc" value="${esc(v.description)}" placeholder="Kurze Beschreibung"/>
+      <label>📷 Foto vom Computer</label>
+      <div class="upload-box" onclick="document.getElementById('m-gfile').click();">
+        <div id="m-upload-lbl" style="font-size:13px;color:#8c6a52;">${v.imageUrl?"✅ Foto vorhanden – klicken zum Ändern":"📁 JPG oder PNG auswählen"}</div>
+        <input type="file" id="m-gfile" accept="image/*" style="display:none;" onchange="handleUpload(this);"/>
+      </div>
+      <div id="m-img-loading" style="display:none;text-align:center;padding:8px;font-size:13px;color:#8c6a52;">⏳ Wird verarbeitet...</div>
+      <div id="m-imgprev" style="${v.imageUrl?"":"display:none;"}margin-bottom:12px;">
+        <img id="m-imgprev-img" src="${esc(v.imageUrl)}" style="width:100%;max-height:160px;object-fit:contain;border-radius:8px;background:#f5ede4;"/>
+        <button onclick="clearUpload();" style="margin-top:6px;background:transparent;border:1px solid #ddd;border-radius:7px;padding:3px 12px;cursor:pointer;font-size:12px;color:#888;">✕ Foto entfernen</button>
+      </div>
+      <input type="hidden" id="m-gimg" value="${esc(v.imageUrl)}"/>
+      <label>🔗 Produkt-Link (optional)</label>
+      <input id="m-glink" value="${esc(v.productUrl)}" placeholder="https://www.amazon.de/..." style="font-family:sans-serif;font-size:12px;"/>
+      <div class="modal-btns" style="margin-top:14px;">
+        <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
+        <button class="btn-save" style="background:${t.ac};" onclick="doSaveGift();">${g?"Speichern":"Hinzufügen"}</button>
+      </div>`;
+  }
+  const wrap=document.createElement("div");wrap.id="modal-overlay";wrap.className="overlay";
+  wrap.onclick=e=>{if(e.target===wrap)closeModal();};
+  wrap.innerHTML=`<div class="modal">${body}</div>`;
+  document.body.appendChild(wrap);
+  setTimeout(()=>wrap.querySelector("input")?.focus(),40);
+  wrap.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+}
+
+function handleUpload(input){
+  const file=input.files[0];if(!file)return;
+  const loading=document.getElementById("m-img-loading"),prev=document.getElementById("m-imgprev"),lbl=document.getElementById("m-upload-lbl");
+  if(loading)loading.style.display="block";if(prev)prev.style.display="none";
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=500;let w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+      canvas.getContext("2d").drawImage(img,0,0,w,h);
+      const b64=canvas.toDataURL("image/jpeg",.7);
+      document.getElementById("m-gimg").value=b64;
+      document.getElementById("m-imgprev-img").src=b64;
+      if(prev)prev.style.display="";if(loading)loading.style.display="none";
+      if(lbl)lbl.textContent="✅ Foto ausgewählt";
+    };img.src=e.target.result;
+  };reader.readAsDataURL(file);
+}
+function clearUpload(){document.getElementById("m-gimg").value="";document.getElementById("m-imgprev").style.display="none";document.getElementById("m-upload-lbl").textContent="📁 JPG oder PNG auswählen";document.getElementById("m-gfile").value="";}
+
+async function doLogin(){const pw=document.getElementById("m-pw")?.value||"";if(pw===data.adminPassword){isAdmin=true;saveAdmin();closeModal();render();showNotif("👑 Willkommen, Admin!");}else document.getElementById("m-err").textContent="Falsches Passwort!";}
+async function doSetPw(){const pw1=document.getElementById("m-pw1")?.value||"",pw2=document.getElementById("m-pw2")?.value||"";const err=document.getElementById("m-err");if(pw1.length<4){err.textContent="Mindestens 4 Zeichen!";return;}if(pw1!==pw2){err.textContent="Nicht identisch!";return;}data.adminPassword=pw1;isAdmin=true;saveAdmin();closeModal();await saveData();render();showNotif("Passwort gesetzt!");}
+async function doSaveGift(){const name=(document.getElementById("m-gname")?.value||"").trim();if(!name){showNotif("Bitte Namen eingeben!");return;}const gid=document.getElementById("m-gid")?.value;const gift={id:gid?parseInt(gid):Date.now(),name,emoji:document.getElementById("m-gemoji")?.value||"🎁",price:document.getElementById("m-gprice")?.value||"",description:document.getElementById("m-gdesc")?.value||"",imageUrl:document.getElementById("m-gimg")?.value||"",productUrl:document.getElementById("m-glink")?.value||"",cardBg:document.getElementById("m-gcardBg")?.value||"#ffffff"};if(gid){data.gifts=data.gifts.map(g=>g.id===parseInt(gid)?gift:g);showNotif("Artikel aktualisiert!");}else{data.gifts.push(gift);showNotif("Artikel hinzugefügt!");}closeModal();await saveData();}
+
+function openDesign(){
+  const t=THEMES[data.design.theme]||THEMES.warm;
+  const swatches=Object.entries(THEMES).map(([k,th])=>`<div class="swatch${data.design.theme===k?" active":""}" id="sw-${k}" onclick="selTheme('${k}');" style="border-color:${data.design.theme===k?th.ac:"#eee"};"><div class="swatch-inner" style="background:${th.bg};"><div class="swatch-dot" style="background:${th.ac};"></div><div class="swatch-name" style="color:${th.text};">${th.name}</div></div></div>`).join("");
+  const div=document.createElement("div");div.id="design-overlay";div.className="overlay";
+  div.onclick=e=>{if(e.target===div)div.remove();};
+  div.innerHTML=`<div class="modal" style="max-width:460px;"><h2 style="color:#222;">🎨 Design anpassen</h2>
+    <label style="color:#888;">Farbthema</label><div class="theme-grid">${swatches}</div>
+    <label style="color:#888;">Titel</label><input id="d-title" value="${esc(data.design.headerText)}" style="background:#fafafa;border:1.5px solid #e0e0e0;color:#333;margin-top:4px;"/>
+    <label style="color:#888;">Untertitel</label><input id="d-sub" value="${esc(data.design.headerSub)}" style="background:#fafafa;border:1.5px solid #e0e0e0;color:#333;margin-top:4px;"/>
+    <label style="color:#888;margin-top:8px;display:block;">🖼️ Hintergrundbild URL</label>
+    <input id="d-bg" value="${esc(data.design.bgUrl||"")}" placeholder="https://..." style="background:#fafafa;border:1.5px solid #e0e0e0;color:#333;font-family:sans-serif;font-size:12px;margin-top:4px;"/>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn-cancel" onclick="document.getElementById('design-overlay').remove();">Abbrechen</button>
+      <button class="btn-save" style="background:${t.ac};" onclick="applyDesign();">Übernehmen</button>
+    </div></div>`;
+  document.body.appendChild(div);
+}
+function selTheme(k){data.design.theme=k;document.querySelectorAll(".swatch").forEach(el=>{const key=el.id.replace("sw-","");el.classList.toggle("active",key===k);el.style.borderColor=key===k?THEMES[key].ac:"#eee";});}
+async function applyDesign(){data.design.headerText=document.getElementById("d-title")?.value||data.design.headerText;data.design.headerSub=document.getElementById("d-sub")?.value||data.design.headerSub;data.design.bgUrl=document.getElementById("d-bg")?.value||"";document.getElementById("design-overlay")?.remove();await saveData();render();showNotif("🎨 Design gespeichert!");}
+
+function renderSetup(){
+  document.body.style.background="#fdf6ee";
+  document.getElementById("root").innerHTML=`
+  <div style="max-width:580px;margin:0 auto;padding:40px 20px 80px;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-size:48px;margin-bottom:8px;">🎁</div>
+      <h1 style="font-size:26px;color:#3d2b1f;font-weight:normal;margin-bottom:6px;">Firebase einrichten</h1>
+      <p style="color:#8c6a52;font-style:italic;font-size:14px;">Einmalig 5 Minuten – dann funktioniert alles</p>
+    </div>
+    <div style="background:white;border-radius:18px;padding:28px;box-shadow:0 4px 24px rgba(0,0,0,.08);">
+      <div style="display:flex;gap:16px;margin-bottom:20px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#c97d4e;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">1</div>
+        <div>
+          <div style="font-size:15px;margin-bottom:4px;">Gehe zu <a href="https://console.firebase.google.com" target="_blank" style="color:#5b7ec9;">console.firebase.google.com</a></div>
+          <div style="font-size:13px;color:#888;">Mit deinem Google-Konto einloggen → <strong>„Projekt erstellen"</strong></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:20px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#c97d4e;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">2</div>
+        <div>
+          <div style="font-size:15px;margin-bottom:4px;">Projektname eingeben</div>
+          <div style="font-size:13px;color:#888;">z.B. <strong>„geschenkeliste"</strong> → Weiter → Weiter → Projekt erstellen</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:20px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#c97d4e;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">3</div>
+        <div>
+          <div style="font-size:15px;margin-bottom:4px;">Realtime Database aktivieren</div>
+          <div style="font-size:13px;color:#888;">Links im Menü: <strong>„Erstellen" → „Realtime Database"</strong> → „Datenbank erstellen" → Standort: Europe → „Im Testmodus starten"</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:20px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#c97d4e;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">4</div>
+        <div>
+          <div style="font-size:15px;margin-bottom:4px;">Web-App hinzufügen</div>
+          <div style="font-size:13px;color:#888;">Zahnrad oben links → <strong>„Projekteinstellungen"</strong> → ganz unten: <strong>„App hinzufügen" → „Web" (&lt;/&gt;)</strong> → App-Nickname eingeben → Registrieren</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:0;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#c97d4e;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">5</div>
+        <div>
+          <div style="font-size:15px;margin-bottom:4px;">Config in die HTML-Datei eintragen</div>
+          <div style="font-size:13px;color:#888;">Du siehst einen Code-Block mit <strong>firebaseConfig</strong> → diese Werte in die HTML-Datei bei <strong>„DEIN_API_KEY"</strong> usw. eintragen → Datei speichern → auf Netlify hochladen</div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#fff8f2;border:1.5px solid #e8d5c4;border-radius:14px;padding:16px;margin-top:16px;font-size:13px;color:#8c6a52;line-height:1.6;">
+      💡 <strong>Danach:</strong> Der Link ist kurz, die Daten werden sicher gespeichert, Echtzeit-Updates funktionieren und kein Login für deine Freunde nötig!
+    </div>
+  </div>`;
+}
+
+// Globale Funktionen zugänglich machen
+window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.removeHImgItem=removeHImgItem;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
+window.openModal=openModal;window.closeModal=closeModal;window.doLogin=doLogin;window.doSetPw=doSetPw;
+window.doSaveGift=doSaveGift;window.handleUpload=handleUpload;window.clearUpload=clearUpload;
+window.openDesign=openDesign;window.selTheme=selTheme;window.applyDesign=applyDesign;
+window.logoutAdmin=logoutAdmin;
+
+init();
+</script>
+</body>
+</html>
