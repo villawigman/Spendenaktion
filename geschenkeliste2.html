@@ -203,7 +203,18 @@ const g=item;
   const hblocks=allHeaderBlocks.map((b)=>{
     if(b._htype==='img'){
       const editBtns=isAdmin?`<div class="hblock-edit"><button class="btn-icon" onclick="openModal('himg','${b.id}');" style="background:white;font-size:12px;">✏️</button><button class="btn-icon" onclick="removeHImg('${b.id}');" style="background:white;font-size:12px;">🗑️</button></div>`:'';
-      return `<div class="hblock" style="background:${b.bgColor||'transparent'};border-radius:12px;margin-bottom:8px;">${editBtns}<img src="${esc(b.imageUrl||'')}" alt="" style="max-width:${b.maxWidth||'100%'};height:auto;border-radius:${b.rounded?'12px':'4px'};display:block;margin:0 auto;"/></div>`;
+      const imgs=b.images||[];
+      const h=b.imgHeight||'200px';
+      const rounded=b.rounded?'12px':'4px';
+      let galleryHtml='';
+      if(b.layout==='grid'){
+        galleryHtml=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(${h==='100px'?'80px':h==='200px'?'160px':'240px'},1fr));gap:8px;">${imgs.map(src=>`<img src="${esc(src)}" style="width:100%;height:${h};object-fit:cover;border-radius:${rounded};display:block;"/>`).join('')}</div>`;
+      } else if(b.layout==='single'){
+        galleryHtml=imgs.map(src=>`<img src="${esc(src)}" style="width:100%;height:auto;max-height:${h==='100px'?'200px':h==='200px'?'350px':'500px'};object-fit:contain;border-radius:${rounded};display:block;margin:0 auto 8px;"/>`).join('');
+      } else {
+        galleryHtml=`<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;">${imgs.map(src=>`<img src="${esc(src)}" style="height:${h};width:auto;flex-shrink:0;object-fit:cover;border-radius:${rounded};display:block;"/>`).join('')}</div>`;
+      }
+      return `<div class="hblock" style="background:${b.bgColor||'transparent'};border-radius:12px;margin-bottom:8px;padding:12px;">${editBtns}${galleryHtml}</div>`;
     }
     const editBtns=isAdmin?`<div class="hblock-edit"><button class="btn-icon" onclick="openModal('hblock','${b.id}');" style="background:white;font-size:12px;">✏️</button><button class="btn-icon" onclick="removeHBlock('${b.id}');" style="background:white;font-size:12px;">🗑️</button></div>`:'';
     return `<div class="hblock" style="background:${b.bgColor||'transparent'};border-radius:${b.bgColor&&b.bgColor!=='transparent'?'12px':'0'};margin-bottom:${b.bgColor&&b.bgColor!=='transparent'?'8px':'0'};">${editBtns}<p style="font-family:${b.fontFamily||'Georgia,serif'};font-size:${b.fontSize||'16px'};font-weight:${b.bold?'bold':'normal'};font-style:${b.italic?'italic':'normal'};color:${b.color||t.text};line-height:1.5;white-space:pre-wrap;">${esc(b.text||'')}</p></div>`;
@@ -249,31 +260,50 @@ async function doSaveHBlock(){
   closeModal();await saveData();
 }
 function handleHImgUpload(input){
-  const file=input.files[0];if(!file)return;
-  const loading=document.getElementById("m-hi-loading"),prev=document.getElementById("m-hiprev"),lbl=document.getElementById("m-hi-lbl");
-  if(loading)loading.style.display="block";if(prev)prev.style.display="none";
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const img=new Image();
-    img.onload=()=>{
-      const MAX=800;let w=img.width,h=img.height;
-      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
-      const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
-      canvas.getContext("2d").drawImage(img,0,0,w,h);
-      const b64=canvas.toDataURL("image/jpeg",.8);
-      document.getElementById("m-hiimg").value=b64;
-      document.getElementById("m-hiprev-img").src=b64;
-      if(prev)prev.style.display="";if(loading)loading.style.display="none";
-      if(lbl)lbl.textContent="✅ Bild ausgewählt";
-    };img.src=e.target.result;
-  };reader.readAsDataURL(file);
+  const files=Array.from(input.files);if(!files.length)return;
+  const loading=document.getElementById("m-hi-loading"),lbl=document.getElementById("m-hi-lbl");
+  if(loading)loading.style.display="block";
+  let processed=0;
+  const existing=JSON.parse(document.getElementById("m-hiimgs")?.value||"[]");
+  const newImgs=[...existing];
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=800;let w=img.width,h=img.height;
+        if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+        const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+        canvas.getContext("2d").drawImage(img,0,0,w,h);
+        newImgs.push(canvas.toDataURL("image/jpeg",.8));
+        processed++;
+        if(processed===files.length){
+          document.getElementById("m-hiimgs").value=JSON.stringify(newImgs);
+          if(loading)loading.style.display="none";
+          if(lbl)lbl.textContent=`✅ ${newImgs.length} Bild(er) ausgewählt`;
+          // Update preview
+          const prev=document.getElementById("m-hiprev");
+          if(prev)prev.innerHTML=newImgs.map((src,i)=>`<div style="position:relative;display:inline-block;margin:4px;"><img src="${src}" style="height:80px;width:auto;object-fit:cover;border-radius:6px;border:1px solid #ddd;"/><button onclick="removeHImgItem(${i});" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">✕</button></div>`).join('');
+        }
+      };img.src=e.target.result;
+    };reader.readAsDataURL(file);
+  });
 }
-function clearHImg(){document.getElementById("m-hiimg").value="";document.getElementById("m-hiprev").style.display="none";document.getElementById("m-hi-lbl").textContent="📁 JPG oder PNG auswählen";document.getElementById("m-hifile").value="";}
+function removeHImgItem(idx){
+  const imgs=JSON.parse(document.getElementById("m-hiimgs")?.value||"[]");
+  imgs.splice(idx,1);
+  document.getElementById("m-hiimgs").value=JSON.stringify(imgs);
+  const prev=document.getElementById("m-hiprev");
+  if(prev)prev.innerHTML=imgs.map((src,i)=>`<div style="position:relative;display:inline-block;margin:4px;"><img src="${src}" style="height:80px;width:auto;object-fit:cover;border-radius:6px;border:1px solid #ddd;"/><button onclick="removeHImgItem(${i});" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">✕</button></div>`).join('');
+  const lbl=document.getElementById("m-hi-lbl");
+  if(lbl)lbl.textContent=imgs.length?`✅ ${imgs.length} Bild(er) ausgewählt`:"📁 JPG oder PNG auswählen";
+}
+function clearHImg(){document.getElementById("m-hiimgs").value="[]";const prev=document.getElementById("m-hiprev");if(prev)prev.innerHTML="";const lbl=document.getElementById("m-hi-lbl");if(lbl)lbl.textContent="📁 JPG oder PNG auswählen";document.getElementById("m-hifile").value="";}
 async function doSaveHImg(){
-  const imageUrl=document.getElementById("m-hiimg")?.value||"";
-  if(!imageUrl){showNotif("Bitte ein Bild auswählen!");return;}
+  const images=JSON.parse(document.getElementById("m-hiimgs")?.value||"[]");
+  if(!images.length){showNotif("Bitte mindestens ein Bild auswählen!");return;}
   const hid=document.getElementById("m-hiid")?.value;
-  const block={id:hid||String(Date.now()),imageUrl,maxWidth:document.getElementById("m-himaxw")?.value||"100%",rounded:document.getElementById("m-hirounded")?.classList.contains("active")||false,bgColor:document.getElementById("m-hibgcolor")?.value||"transparent",order:hid?((data.headerImgs||[]).find(b=>b.id===hid)?.order||0):Date.now()};
+  const block={id:hid||String(Date.now()),images,layout:document.getElementById("m-hilayout")?.value||"row",imgHeight:document.getElementById("m-hiheight")?.value||"200px",rounded:document.getElementById("m-hirounded")?.classList.contains("active")||false,bgColor:document.getElementById("m-hibgcolor")?.value||"transparent",order:hid?((data.headerImgs||[]).find(b=>b.id===hid)?.order||0):Date.now()};
   if(!data.headerImgs)data.headerImgs=[];
   if(hid){data.headerImgs=data.headerImgs.map(b=>b.id===hid?block:b);showNotif("✏️ Bildblock aktualisiert!");}
   else{data.headerImgs.push(block);showNotif("🖼️ Bildblock hinzugefügt!");}
@@ -343,30 +373,36 @@ function openModal(type,giftId){
   }
   else if(type==="himg"){
     const b=giftId?((data.headerImgs||[]).find(x=>x.id===giftId)):null;
-    const v=b||{imageUrl:"",maxWidth:"100%",rounded:true,bgColor:"transparent"};
+    const v=b||{images:[],layout:"row",gap:"8px",imgHeight:"200px",rounded:true,bgColor:"transparent"};
+    const imgs=v.images||[];
     const bgColors=["transparent","#fdf6ee","#fff5f7","#f3f8f4","#f0f6ff","#fff9fe","#3d2b1f","#f5e6d3","#fce4ec","#d8eedf","#dce8fa"];
     const bgDots=bgColors.map(c=>`<div class="color-dot${v.bgColor===c?" active":""}" style="background:${c==="transparent"?"repeating-linear-gradient(45deg,#ccc,#ccc 3px,#fff 3px,#fff 6px)":c};border-color:${v.bgColor===c?"#333":"#ddd"};" onclick="selColor(this,'m-hibgcolor','${c}');"></div>`).join('');
-    body=`<h2>${b?"✏️ Bildblock bearbeiten":"🖼️ Neuer Bildblock"}</h2>
+    const prevImgs=imgs.map((src,i)=>`<div style="position:relative;display:inline-block;margin:4px;"><img src="${esc(src)}" style="height:80px;width:auto;object-fit:cover;border-radius:6px;border:1px solid #ddd;"/><button onclick="removeHImgItem(${i});" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">✕</button></div>`).join('');
+    body=`<h2>${b?"✏️ Galerie bearbeiten":"🖼️ Neue Bildergalerie"}</h2>
       <input type="hidden" id="m-hiid" value="${b?b.id:""}"/>
-      <label>📷 Foto vom Computer</label>
+      <input type="hidden" id="m-hiimgs" value="${esc(JSON.stringify(imgs))}"/>
+      <label>📷 Bilder hinzufügen (mehrere möglich)</label>
       <div class="upload-box" onclick="document.getElementById('m-hifile').click();">
-        <div id="m-hi-lbl" style="font-size:13px;color:#8c6a52;">${v.imageUrl?"✅ Bild vorhanden – klicken zum Ändern":"📁 JPG oder PNG auswählen"}</div>
-        <input type="file" id="m-hifile" accept="image/*" style="display:none;" onchange="handleHImgUpload(this);"/>
+        <div id="m-hi-lbl" style="font-size:13px;color:#8c6a52;">📁 JPG oder PNG auswählen (mehrere gleichzeitig möglich)</div>
+        <input type="file" id="m-hifile" accept="image/*" multiple style="display:none;" onchange="handleHImgUpload(this);"/>
       </div>
       <div id="m-hi-loading" style="display:none;text-align:center;padding:8px;font-size:13px;color:#8c6a52;">⏳ Wird verarbeitet...</div>
-      <div id="m-hiprev" style="${v.imageUrl?"":"display:none;"}margin-bottom:12px;">
-        <img id="m-hiprev-img" src="${esc(v.imageUrl)}" style="width:100%;max-height:160px;object-fit:contain;border-radius:8px;background:#f5ede4;"/>
-        <button onclick="clearHImg();" style="margin-top:6px;background:transparent;border:1px solid #ddd;border-radius:7px;padding:3px 12px;cursor:pointer;font-size:12px;color:#888;">✕ Bild entfernen</button>
+      <div id="m-hiprev" style="display:flex;flex-wrap:wrap;margin-bottom:12px;min-height:${imgs.length?'20px':'0'}">${prevImgs}</div>
+      <label>Anordnung</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <button class="font-btn${(v.layout||'row')==='row'?" active":""}" onclick="selSize(this,'m-hilayout','row');">↔ Nebeneinander</button>
+        <button class="font-btn${v.layout==='grid'?" active":""}" onclick="selSize(this,'m-hilayout','grid');">⊞ Raster</button>
+        <button class="font-btn${v.layout==='single'?" active":""}" onclick="selSize(this,'m-hilayout','single');">☐ Einzeln groß</button>
       </div>
-      <input type="hidden" id="m-hiimg" value="${esc(v.imageUrl)}"/>
-      <label>Maximale Breite</label>
+      <input type="hidden" id="m-hilayout" value="${v.layout||'row'}"/>
+      <label>Bildhöhe</label>
       <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
-        <button class="font-btn${v.maxWidth==="100px"?" active":""}" onclick="selSize(this,'m-himaxw','100px');">Klein</button>
-        <button class="font-btn${v.maxWidth==="200px"?" active":""}" onclick="selSize(this,'m-himaxw','200px');">Mittel</button>
-        <button class="font-btn${v.maxWidth==="400px"?" active":""}" onclick="selSize(this,'m-himaxw','400px');">Groß</button>
-        <button class="font-btn${v.maxWidth==="100%"?" active":""}" onclick="selSize(this,'m-himaxw','100%');">Voll</button>
+        <button class="font-btn${v.imgHeight==="100px"?" active":""}" onclick="selSize(this,'m-hiheight','100px');">Klein</button>
+        <button class="font-btn${v.imgHeight==="200px"?" active":""}" onclick="selSize(this,'m-hiheight','200px');">Mittel</button>
+        <button class="font-btn${v.imgHeight==="300px"?" active":""}" onclick="selSize(this,'m-hiheight','300px');">Groß</button>
+        <button class="font-btn${v.imgHeight==="100%"?" active":""}" onclick="selSize(this,'m-hiheight','100%');">Original</button>
       </div>
-      <input type="hidden" id="m-himaxw" value="${v.maxWidth||'100%'}"/>
+      <input type="hidden" id="m-hiheight" value="${v.imgHeight||'200px'}"/>
       <label>Ecken</label>
       <div style="display:flex;gap:6px;margin-bottom:14px;">
         <button class="font-btn${v.rounded?" active":""}" id="m-hirounded" onclick="toggleStyle('m-hirounded');">Abgerundet</button>
@@ -559,7 +595,7 @@ function renderSetup(){
 }
 
 // Globale Funktionen zugänglich machen
-window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
+window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.removeHImgItem=removeHImgItem;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
 window.openModal=openModal;window.closeModal=closeModal;window.doLogin=doLogin;window.doSetPw=doSetPw;
 window.doSaveGift=doSaveGift;window.handleUpload=handleUpload;window.clearUpload=clearUpload;
 window.openDesign=openDesign;window.selTheme=selTheme;window.applyDesign=applyDesign;
