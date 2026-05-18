@@ -112,7 +112,11 @@ let db,dataRef;
 // Admin-Session
 function restoreAdmin(){try{const s=localStorage.getItem("gl-adm");if(s&&data.adminPassword&&s===data.adminPassword)isAdmin=true;}catch(e){}}
 function saveAdmin(){try{localStorage.setItem("gl-adm",data.adminPassword);}catch(e){}}
-function logoutAdmin(){isAdmin=false;try{localStorage.removeItem("gl-adm");}catch(e){}}
+function logoutAdmin(){
+  isAdmin=false;
+  try{localStorage.removeItem("gl-adm");}catch(e){}
+  render();
+}
 
 // Prüfe ob Config eingetragen wurde
 function configOk(){return firebaseConfig.apiKey!=="DEIN_API_KEY";}
@@ -131,10 +135,17 @@ async function init(){
         data.gifts=val.gifts||[];
         data.claims=val.claims||{};
         data.adminPassword=val.adminPassword||"";
-        data.design=val.design||data.design;
+        data.design={...data.design,...(val.design||{})};
+        data.headerBlocks=val.headerBlocks||[];
+        data.headerImgs=val.headerImgs||[];
+        data.textBlocks=val.textBlocks||[];
       }
       restoreAdmin();
       render();
+      console.log("✅ Firebase verbunden!");
+    },(error)=>{
+      console.error("Firebase Fehler:",error);
+      showNotif("❌ Verbindungsfehler: "+error.message);
     });
   }catch(e){
     document.getElementById("root").innerHTML=`<div style="text-align:center;padding:60px 20px;font-family:sans-serif;"><div style="font-size:36px;margin-bottom:12px;">⚠️</div><p style="color:#c0392b;font-size:16px;margin-bottom:6px;">Verbindungsfehler</p><p style="color:#888;font-size:13px;">${e.message}</p></div>`;
@@ -142,9 +153,15 @@ async function init(){
 }
 
 async function saveData(){
-  if(!dataRef)return;
+  if(!dataRef){showNotif("❌ Keine Datenbankverbindung!");console.error("dataRef is null");return;}
   isSaving=true;renderSaving();
-  try{await set(dataRef,data);}catch(e){showNotif("❌ Speicherfehler");}
+  try{
+    await set(dataRef,data);
+    console.log("✅ Gespeichert!");
+  }catch(e){
+    console.error("Speicherfehler:",e);
+    showNotif("❌ Speicherfehler: "+e.message);
+  }
   isSaving=false;renderSaving();
 }
 
@@ -166,7 +183,7 @@ function render(){
   document.title=d.headerText||"Artikelliste";
 
   let adminHtml="";
-  if(isAdmin){adminHtml=`<div style="display:inline-flex;align-items:center;gap:8px;background:${t.tag};border:1.5px solid ${t.ac};color:${t.ac};border-radius:999px;padding:5px 14px;font-size:12px;font-family:sans-serif;">👑 Admin<button onclick="logoutAdmin();render();" style="background:transparent;border:1px solid ${t.ac};border-radius:7px;padding:2px 8px;font-size:11px;color:${t.ac};cursor:pointer;">Abmelden</button></div><button onclick="openDesign();" style="background:${t.ac};color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🎨 Design</button>`;}
+  if(isAdmin){adminHtml=`<div style="display:inline-flex;align-items:center;gap:8px;background:${t.tag};border:1.5px solid ${t.ac};color:${t.ac};border-radius:999px;padding:5px 14px;font-size:12px;font-family:sans-serif;">👑 Admin<button onclick="logoutAdmin();" style="background:transparent;border:1px solid ${t.ac};border-radius:7px;padding:2px 8px;font-size:11px;color:${t.ac};cursor:pointer;">Abmelden</button></div><button onclick="openDesign();" style="background:${t.ac};color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🎨 Design</button>`;}
   else if(!data.adminPassword){adminHtml=`<button onclick="openModal('setpw');" style="background:${t.text};color:${t.bg};border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🔐 Admin-Passwort festlegen</button>`;}
   else{adminHtml=`<button onclick="openModal('login');" style="background:transparent;color:${t.sub};border:1px solid ${t.brd};border-radius:999px;padding:7px 16px;font-size:13px;cursor:pointer;border:1px solid ${t.brd};">🔑 Als Admin anmelden</button>`;}
 
@@ -185,7 +202,7 @@ const cards=allItems.map(item=>{
 const g=item;
     const claimer=data.claims[g.id],isMine=claimer===userName,isTaken=!!claimer&&!isMine;
     const cardBgColor=isMine?t.tag:isTaken?"#f8f4f0":(g.cardBg||t.card);
-    let imgHtml=g.imageUrl?`<div class="card-img"><img src="${esc(g.imageUrl)}" alt="${esc(g.name)}"/></div>`:`<div class="card-emoji">${esc(g.emoji||"🎁")}</div>`;
+    let imgHtml=g.imageUrl?`<div class="card-img" style="background:${g.imgBg||'#f5ede4'};"><img src="${esc(g.imageUrl)}" alt="${esc(g.name)}"/></div>`:`<div class="card-emoji" style="background:${g.imgBg||'#f5e6d3'};">${esc(g.emoji||"🎁")}</div>`;
     let meta="";
     if(g.price)meta+=`<span class="price-tag">${esc(g.price)}</span>`;
     if(g.productUrl)meta+=`<a class="product-link" href="${esc(g.productUrl)}" target="_blank">🔗 Zum Produkt</a>`;
@@ -198,8 +215,10 @@ const g=item;
 const hex=(g.cardBg||'#ffffff').replace('#','');
 const r=parseInt(hex.substr(0,2),16),gg=parseInt(hex.substr(2,2),16),b2=parseInt(hex.substr(4,2),16);
 const brightness=(r*299+gg*587+b2*114)/1000;
-const cardTextColor=brightness<128?'#ffffff':'#3d2b1f';
-return `<div class="card${isMine?" mine":isTaken?" taken":""}" style="background:${cardBgColor};">${imgHtml}<div class="card-body"><div class="card-name" style="color:${cardTextColor};">${esc(g.name)}</div>${g.description?`<div class="card-desc" style="color:${brightness<128?'rgba(255,255,255,0.8)':'#8c6a52'};">${esc(g.description)}</div>`:""}<div class="card-meta">${meta}</div></div><div class="card-footer">${status}<div class="card-actions">${acts}</div></div></div>`;
+const autoTextColor=brightness<128?'#ffffff':'#3d2b1f';
+const cardTextColor=g.textColor||autoTextColor;
+const cardFont=g.fontFamily||'Georgia,serif';
+return `<div class="card${isMine?" mine":isTaken?" taken":""}" style="background:${cardBgColor};font-family:${cardFont};">${imgHtml}<div class="card-body"><div class="card-name" style="color:${cardTextColor};">${esc(g.name)}</div>${g.description?`<div class="card-desc" style="color:${g.textColor?(g.textColor+'cc'):brightness<128?'rgba(255,255,255,0.8)':'#8c6a52'};">${esc(g.description)}</div>`:""}<div class="card-meta">${meta}</div></div><div class="card-footer">${status}<div class="card-actions">${acts}</div></div></div>`;
   }).join("")+(isAdmin?`<div class="add-card" onclick="openModal('gift',0);"><div style="font-size:32px;color:${t.ac};margin-bottom:6px;">+</div><div style="font-size:13px;font-style:italic;">Artikel hinzufügen</div></div><div class="add-card" onclick="openModal('text',0);" style="border-color:${t.brd};color:${t.sub};"><div style="font-size:32px;color:${t.ac};margin-bottom:6px;">T</div><div style="font-size:13px;font-style:italic;">Textblock hinzufügen</div></div>`:"");
 
   // Render header blocks
@@ -525,7 +544,7 @@ function clearUpload(){document.getElementById("m-gimg").value="";document.getEl
 
 async function doLogin(){const pw=document.getElementById("m-pw")?.value||"";if(pw===data.adminPassword){isAdmin=true;saveAdmin();closeModal();render();showNotif("👑 Willkommen, Admin!");}else document.getElementById("m-err").textContent="Falsches Passwort!";}
 async function doSetPw(){const pw1=document.getElementById("m-pw1")?.value||"",pw2=document.getElementById("m-pw2")?.value||"";const err=document.getElementById("m-err");if(pw1.length<4){err.textContent="Mindestens 4 Zeichen!";return;}if(pw1!==pw2){err.textContent="Nicht identisch!";return;}data.adminPassword=pw1;isAdmin=true;saveAdmin();closeModal();await saveData();render();showNotif("Passwort gesetzt!");}
-async function doSaveGift(){const name=(document.getElementById("m-gname")?.value||"").trim();if(!name){showNotif("Bitte Namen eingeben!");return;}const gid=document.getElementById("m-gid")?.value;const gift={id:gid?parseInt(gid):Date.now(),name,emoji:document.getElementById("m-gemoji")?.value||"🎁",price:document.getElementById("m-gprice")?.value||"",description:document.getElementById("m-gdesc")?.value||"",imageUrl:document.getElementById("m-gimg")?.value||"",productUrl:document.getElementById("m-glink")?.value||"",cardBg:document.getElementById("m-gcardBg")?.value||"#ffffff"};if(gid){data.gifts=data.gifts.map(g=>g.id===parseInt(gid)?gift:g);showNotif("Artikel aktualisiert!");}else{data.gifts.push(gift);showNotif("Artikel hinzugefügt!");}closeModal();await saveData();}
+async function doSaveGift(){const name=(document.getElementById("m-gname")?.value||"").trim();if(!name){showNotif("Bitte Namen eingeben!");return;}const gid=document.getElementById("m-gid")?.value;const gift={id:gid?parseInt(gid):Date.now(),name,emoji:document.getElementById("m-gemoji")?.value||"🎁",price:document.getElementById("m-gprice")?.value||"",description:document.getElementById("m-gdesc")?.value||"",imageUrl:document.getElementById("m-gimg")?.value||"",productUrl:document.getElementById("m-glink")?.value||"",cardBg:document.getElementById("m-gcardBg")?.value||"#ffffff",textColor:document.getElementById("m-gtextColor")?.value||"",imgBg:document.getElementById("m-gimgBg")?.value||"#f5ede4",fontFamily:document.getElementById("m-gfont")?.value||"Georgia,serif"};if(gid){data.gifts=data.gifts.map(g=>g.id===parseInt(gid)?gift:g);showNotif("Artikel aktualisiert!");}else{data.gifts.push(gift);showNotif("Artikel hinzugefügt!");}closeModal();await saveData();}
 
 function openDesign(){
   const t=THEMES[data.design.theme]||THEMES.warm;
