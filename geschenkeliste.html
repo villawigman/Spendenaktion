@@ -506,7 +506,16 @@ function openModal(type,giftId){
       </div>
       <input type="hidden" id="m-gimg" value="${esc(v.imageUrl)}"/>
       <label>🔗 Produkt-Link (optional)</label>
-      <input id="m-glink" value="${esc(v.productUrl)}" placeholder="https://www.amazon.de/..." style="font-family:sans-serif;font-size:12px;"/>
+      <input id="m-glink"<label>🎨 Karten-Hintergrundfarbe</label>
+<div class="color-row" style="margin-bottom:12px;">${["#ffffff","#fff8f2","#fff5f7","#f3f8f4","#f0f6ff","#fff9fe","#fffde7","#18181b","#3d2b1f"].map(c=>`<div class="color-dot${(v.cardBg||'#ffffff')===c?" active":""}" style="background:${c};border:2px solid ${(v.cardBg||'#ffffff')===c?"#555":"#ddd"};" onclick="selColor(this,'m-gcardBg','${c}');"></div>`).join('')}<input type="color" class="color-input" id="m-gcardBg-picker" value="${v.cardBg||'#ffffff'}" oninput="selColorCustom('m-gcardBg',this.value);"/></div>
+<input type="hidden" id="m-gcardBg" value="${esc(v.cardBg||'#ffffff')}"/>
+<label>🖊️ Schriftfarbe</label>
+<div class="color-row" style="margin-bottom:12px;">${["#3d2b1f","#000000","#ffffff","#c97d4e","#4a8c5c","#3a6fd8","#e05c8a","#a855f7"].map(c=>`<div class="color-dot${(v.textColor||'')===c?" active":""}" style="background:${c};border:2px solid ${(v.textColor||'')===c?"#555":"#ddd"};" onclick="selColor(this,'m-gtextColor','${c}');"></div>`).join('')}<input type="color" class="color-input" id="m-gtextColor-picker" value="${v.textColor||'#3d2b1f'}" oninput="selColorCustom('m-gtextColor',this.value);"/></div>
+<input type="hidden" id="m-gtextColor" value="${esc(v.textColor||'')}"/>
+<label>🖼️ Foto-Hintergrundfarbe</label>
+<div class="color-row" style="margin-bottom:12px;">${["#f5ede4","#ffffff","#f5e6d3","#fce4ec","#d8eedf","#dce8fa","#18181b"].map(c=>`<div class="color-dot${(v.imgBg||'#f5ede4')===c?" active":""}" style="background:${c};border:2px solid ${(v.imgBg||'#f5ede4')===c?"#555":"#ddd"};" onclick="selColor(this,'m-gimgBg','${c}');"></div>`).join('')}<input type="color" class="color-input" id="m-gimgBg-picker" value="${v.imgBg||'#f5ede4'}" oninput="selColorCustom('m-gimgBg',this.value);"/></div>
+<input type="hidden" id="m-gimgBg" value="${esc(v.imgBg||'#f5ede4')}"/>
+      value="${esc(v.productUrl)}" placeholder="https://www.amazon.de/..." style="font-family:sans-serif;font-size:12px;"/>
       <div class="modal-btns" style="margin-top:14px;">
         <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
         <button class="btn-save" style="background:${t.ac};" onclick="doSaveGift();">${g?"Speichern":"Hinzufügen"}</button>
