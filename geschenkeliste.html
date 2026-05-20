@@ -70,6 +70,15 @@ textarea{width:100%;padding:10px 14px;border-radius:10px;font-size:14px;font-fam
 .color-dot.active{border-color:#333}
 .color-input{width:36px;height:36px;border:none;padding:0;cursor:pointer;border-radius:8px;background:none}
 footer{text-align:center;margin-top:48px;font-size:11px;font-family:sans-serif;opacity:.4}
+.cart-bar{position:fixed;bottom:0;left:0;right:0;z-index:8000;padding:12px 16px;font-family:Georgia,serif;box-shadow:0 -4px 20px rgba(0,0,0,.15)}
+.cart-inner{max-width:700px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.cart-sum{font-size:18px;font-weight:bold}
+.cart-items{font-size:12px;opacity:.8;font-family:sans-serif}
+.bank-box{background:#f0f6ff;border:1.5px solid #c0d4f0;border-radius:12px;padding:16px;margin-bottom:16px}
+.bank-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px}
+.bank-label{color:#888;font-family:sans-serif;font-size:12px}
+.bank-value{font-weight:bold;font-family:monospace;font-size:14px}
+.copy-btn{background:#3a6fd8;color:white;border:none;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:sans-serif}
 @media(max-width:600px){.grid{grid-template-columns:1fr}}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
@@ -183,7 +192,7 @@ function render(){
   document.title=d.headerText||"Artikelliste";
 
   let adminHtml="";
-  if(isAdmin){adminHtml=`<div style="display:inline-flex;align-items:center;gap:8px;background:${t.tag};border:1.5px solid ${t.ac};color:${t.ac};border-radius:999px;padding:5px 14px;font-size:12px;font-family:sans-serif;">👑 Admin<button onclick="logoutAdmin();" style="background:transparent;border:1px solid ${t.ac};border-radius:7px;padding:2px 8px;font-size:11px;color:${t.ac};cursor:pointer;">Abmelden</button></div><button onclick="openDesign();" style="background:${t.ac};color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🎨 Design</button>`;}
+  if(isAdmin){adminHtml=`<div style="display:inline-flex;align-items:center;gap:8px;background:${t.tag};border:1.5px solid ${t.ac};color:${t.ac};border-radius:999px;padding:5px 14px;font-size:12px;font-family:sans-serif;">👑 Admin<button onclick="logoutAdmin();" style="background:transparent;border:1px solid ${t.ac};border-radius:7px;padding:2px 8px;font-size:11px;color:${t.ac};cursor:pointer;">Abmelden</button></div><button onclick="openDesign();" style="background:${t.ac};color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🎨 Design</button><button onclick="openModal('bank');" style="background:${t.text};color:${t.bg};border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🏦 Kontodaten</button>`;}
   else if(!data.adminPassword){adminHtml=`<button onclick="openModal('setpw');" style="background:${t.text};color:${t.bg};border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🔐 Admin-Passwort festlegen</button>`;}
   else{adminHtml=`<button onclick="openModal('login');" style="background:transparent;color:${t.sub};border:1px solid ${t.brd};border-radius:999px;padding:7px 16px;font-size:13px;cursor:pointer;border:1px solid ${t.brd};">🔑 Als Admin anmelden</button>`;}
 
@@ -263,6 +272,28 @@ return `<div class="card${isMine?" mine":isTaken?" taken":""}" style="background
 }
 
 function closeModal(){document.getElementById("modal-overlay")?.remove();}
+
+function renderCartBar(t){
+  if(!userName) return '';
+  const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
+  if(!myItems.length) return '';
+  const total=myItems.reduce((sum,g)=>{
+    const p=parseFloat((g.price||'').replace(/[^0-9.,]/g,'').replace(',','.'));
+    return sum+(isNaN(p)?0:p);
+  },0);
+  const itemNames=myItems.map(g=>g.name).join(', ');
+  return `<div class="cart-bar" style="background:${t.text};color:${t.bg};">
+    <div class="cart-inner">
+      <div>
+        <div class="cart-sum">💰 Gesamt: ${total>0?total.toFixed(2)+'€':'–'}</div>
+        <div class="cart-items">${myItems.length} Artikel: ${itemNames}</div>
+      </div>
+      <button onclick="openModal('cart');" style="background:${t.ac};color:white;border:none;border-radius:10px;padding:10px 18px;font-size:14px;font-family:Georgia,serif;font-weight:bold;cursor:pointer;">
+        📋 Zahlungsinfos
+      </button>
+    </div>
+  </div>`;
+}
 function selColor(dot,hiddenId,color){
   document.getElementById(hiddenId).value=color;
   dot.closest('.color-row').querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));
@@ -272,6 +303,15 @@ function selColorCustom(hiddenId,color){
   document.getElementById(hiddenId).value=color;
   const row=document.getElementById(hiddenId)?.closest?document.getElementById(hiddenId+'-picker')?.closest('.color-row'):null;
   if(row)row.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));
+}
+async function doSaveBank(){
+  data.bankAccount={
+    name:document.getElementById("m-bname")?.value||"",
+    iban:document.getElementById("m-biban")?.value||"",
+    bic:document.getElementById("m-bbic")?.value||"",
+    purpose:document.getElementById("m-bpurpose")?.value||"Spendenaktion"
+  };
+  closeModal();await saveData();showNotif("🏦 Kontodaten gespeichert!");
 }
 async function doSaveHBlock(){
   const text=document.getElementById("m-htext")?.value||"";
@@ -359,7 +399,47 @@ async function doRemoveText(id){if(!confirm("Textblock entfernen?"))return;data.
 function openModal(type,giftId){
   const t=THEMES[data.design.theme]||THEMES.warm;
   let body="";
-  if(type==="login"){body=`<h2>🔑 Admin-Anmeldung</h2><label>Passwort</label><input type="password" id="m-pw" placeholder="Passwort..." onkeydown="if(event.key==='Enter')doLogin();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doLogin();">Anmelden</button></div>`;}
+  if(type==="cart"){
+    const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
+    const total=myItems.reduce((sum,g)=>{const p=parseFloat((g.price||'').replace(/[^0-9.,]/g,'').replace(',','.'));return sum+(isNaN(p)?0:p);},0);
+    const b=data.bankAccount||{};
+    const itemsList=myItems.map(g=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:14px;"><span>${esc(g.name)}</span><span style="font-weight:bold;">${g.price||'–'}</span></div>`).join('');
+    body=`<h2>💰 Deine Bestellung</h2>
+      <div style="margin-bottom:16px;">${itemsList}</div>
+      <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold;padding:10px 0;border-top:2px solid #e0e0e0;margin-bottom:20px;">
+        <span>Gesamt</span>
+        <span style="color:${t.ac};">${total>0?total.toFixed(2)+'€':'–'}</span>
+      </div>
+      ${b.iban?`
+      <div class="bank-box">
+        <p style="font-size:13px;color:#888;margin-bottom:12px;font-family:sans-serif;">Bitte überweise den Betrag auf folgendes Konto:</p>
+        ${b.name?`<div class="bank-row"><span class="bank-label">Empfänger</span><span class="bank-value">${esc(b.name)}</span></div>`:''}
+        <div class="bank-row"><span class="bank-label">IBAN</span><div style="display:flex;align-items:center;gap:8px;"><span class="bank-value">${esc(b.iban)}</span><button class="copy-btn" onclick="navigator.clipboard.writeText('${esc(b.iban)}');showNotif('✅ IBAN kopiert!');">Kopieren</button></div></div>
+        ${b.bic?`<div class="bank-row"><span class="bank-label">BIC</span><span class="bank-value">${esc(b.bic)}</span></div>`:''}
+        ${b.purpose?`<div class="bank-row"><span class="bank-label">Verwendungszweck</span><span class="bank-value">${esc(b.purpose)}</span></div>`:''}
+      </div>`:`<div style="background:#fff8f2;border:1.5px solid #e8d5c4;border-radius:12px;padding:16px;text-align:center;color:#8c6a52;font-size:14px;">ℹ️ Der Admin hat noch keine Kontodaten hinterlegt.</div>`}
+      <div class="modal-btns" style="margin-top:14px;">
+        <button class="btn-cancel" onclick="closeModal();">Schließen</button>
+      </div>`;
+  }
+  else if(type==="bank"){
+    const b=data.bankAccount||{};
+    body=`<h2>🏦 Kontodaten eingeben</h2>
+      <p style="font-size:13px;color:#888;font-style:italic;margin-bottom:16px;">Diese Daten sehen alle Nutzer wenn sie auf "Zahlungsinfos" klicken.</p>
+      <label>Empfänger Name</label>
+      <input id="m-bname" value="${esc(b.name||'')}" placeholder="z.B. Max Mustermann"/>
+      <label>IBAN</label>
+      <input id="m-biban" value="${esc(b.iban||'')}" placeholder="DE12 3456 7890 1234 5678 90" style="font-family:monospace;"/>
+      <label>BIC (optional)</label>
+      <input id="m-bbic" value="${esc(b.bic||'')}" placeholder="z.B. DEUTDEDB"/>
+      <label>Verwendungszweck</label>
+      <input id="m-bpurpose" value="${esc(b.purpose||'Spendenaktion')}" placeholder="z.B. Spendenaktion"/>
+      <div class="modal-btns" style="margin-top:14px;">
+        <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
+        <button class="btn-save" style="background:${t.ac};" onclick="doSaveBank();">Speichern</button>
+      </div>`;
+  }
+  else if(type==="login"){body=`<h2>🔑 Admin-Anmeldung</h2><label>Passwort</label><input type="password" id="m-pw" placeholder="Passwort..." onkeydown="if(event.key==='Enter')doLogin();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doLogin();">Anmelden</button></div>`;}
   else if(type==="setpw"){body=`<h2>🔐 Admin-Passwort</h2><label>Neues Passwort (min. 4 Zeichen)</label><input type="password" id="m-pw1" placeholder="Passwort..."/><label>Wiederholen</label><input type="password" id="m-pw2" placeholder="Wiederholen..." onkeydown="if(event.key==='Enter')doSetPw();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doSetPw();">Festlegen</button></div>`;}
   else if(type==="text"){
     const b=giftId?((data.textBlocks||[]).find(x=>x.id===giftId)):null;
@@ -506,16 +586,7 @@ function openModal(type,giftId){
       </div>
       <input type="hidden" id="m-gimg" value="${esc(v.imageUrl)}"/>
       <label>🔗 Produkt-Link (optional)</label>
-      <input id="m-glink"<label>🎨 Karten-Hintergrundfarbe</label>
-<div class="color-row" style="margin-bottom:12px;">${["#ffffff","#fff8f2","#fff5f7","#f3f8f4","#f0f6ff","#fff9fe","#fffde7","#18181b","#3d2b1f"].map(c=>`<div class="color-dot${(v.cardBg||'#ffffff')===c?" active":""}" style="background:${c};border:2px solid ${(v.cardBg||'#ffffff')===c?"#555":"#ddd"};" onclick="selColor(this,'m-gcardBg','${c}');"></div>`).join('')}<input type="color" class="color-input" id="m-gcardBg-picker" value="${v.cardBg||'#ffffff'}" oninput="selColorCustom('m-gcardBg',this.value);"/></div>
-<input type="hidden" id="m-gcardBg" value="${esc(v.cardBg||'#ffffff')}"/>
-<label>🖊️ Schriftfarbe</label>
-<div class="color-row" style="margin-bottom:12px;">${["#3d2b1f","#000000","#ffffff","#c97d4e","#4a8c5c","#3a6fd8","#e05c8a","#a855f7"].map(c=>`<div class="color-dot${(v.textColor||'')===c?" active":""}" style="background:${c};border:2px solid ${(v.textColor||'')===c?"#555":"#ddd"};" onclick="selColor(this,'m-gtextColor','${c}');"></div>`).join('')}<input type="color" class="color-input" id="m-gtextColor-picker" value="${v.textColor||'#3d2b1f'}" oninput="selColorCustom('m-gtextColor',this.value);"/></div>
-<input type="hidden" id="m-gtextColor" value="${esc(v.textColor||'')}"/>
-<label>🖼️ Foto-Hintergrundfarbe</label>
-<div class="color-row" style="margin-bottom:12px;">${["#f5ede4","#ffffff","#f5e6d3","#fce4ec","#d8eedf","#dce8fa","#18181b"].map(c=>`<div class="color-dot${(v.imgBg||'#f5ede4')===c?" active":""}" style="background:${c};border:2px solid ${(v.imgBg||'#f5ede4')===c?"#555":"#ddd"};" onclick="selColor(this,'m-gimgBg','${c}');"></div>`).join('')}<input type="color" class="color-input" id="m-gimgBg-picker" value="${v.imgBg||'#f5ede4'}" oninput="selColorCustom('m-gimgBg',this.value);"/></div>
-<input type="hidden" id="m-gimgBg" value="${esc(v.imgBg||'#f5ede4')}"/>
-      value="${esc(v.productUrl)}" placeholder="https://www.amazon.de/..." style="font-family:sans-serif;font-size:12px;"/>
+      <input id="m-glink" value="${esc(v.productUrl)}" placeholder="https://www.amazon.de/..." style="font-family:sans-serif;font-size:12px;"/>
       <div class="modal-btns" style="margin-top:14px;">
         <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
         <button class="btn-save" style="background:${t.ac};" onclick="doSaveGift();">${g?"Speichern":"Hinzufügen"}</button>
@@ -628,7 +699,7 @@ function renderSetup(){
 }
 
 // Globale Funktionen zugänglich machen
-window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.removeHImgItem=removeHImgItem;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
+window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.doSaveBank=doSaveBank;window.renderCartBar=renderCartBar;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.removeHImgItem=removeHImgItem;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
 window.openModal=openModal;window.closeModal=closeModal;window.doLogin=doLogin;window.doSetPw=doSetPw;
 window.doSaveGift=doSaveGift;window.handleUpload=handleUpload;window.clearUpload=clearUpload;
 window.openDesign=openDesign;window.selTheme=selTheme;window.applyDesign=applyDesign;
@@ -638,4 +709,3 @@ init();
 </script>
 </body>
 </html>
-
