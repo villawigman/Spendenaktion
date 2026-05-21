@@ -151,6 +151,7 @@ async function init(){
       }
       restoreAdmin();
       render();
+      setTimeout(function(){updateCartBar();}, 50);
       console.log("✅ Firebase verbunden!");
     },(error)=>{
       console.error("Firebase Fehler:",error);
