@@ -429,26 +429,45 @@ function openModal(type,giftId){
   let body="";
   if(type==="cart"){
     const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
-    const total=myItems.reduce((sum,g)=>{const p=parseFloat((g.price||'').replace(/[^0-9.,]/g,'').replace(',','.'));return sum+(isNaN(p)?0:p);},0);
+    const total=myItems.reduce((sum,g)=>{
+      const p=parseFloat((g.price||'').replace(/[^0-9.,]/g,'').replace(',','.'));
+      return sum+(isNaN(p)?0:p);
+    },0);
     const b=data.bankAccount||{};
-    const itemsList=myItems.map(g=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:14px;"><span>${esc(g.name)}</span><span style="font-weight:bold;">${g.price||'–'}</span></div>`).join('');
-    body=`<h2>💰 Deine Bestellung</h2>
-      <div style="margin-bottom:16px;">${itemsList}</div>
-      <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold;padding:10px 0;border-top:2px solid #e0e0e0;margin-bottom:20px;">
-        <span>Gesamt</span>
-        <span style="color:${t.ac};">${total>0?total.toFixed(2)+'€':'–'}</span>
-      </div>
-      ${b.iban?`
-      <div class="bank-box">
-        <p style="font-size:13px;color:#888;margin-bottom:12px;font-family:sans-serif;">Bitte überweise den Betrag auf folgendes Konto:</p>
-        ${b.name?`<div class="bank-row"><span class="bank-label">Empfänger</span><span class="bank-value">${esc(b.name)}</span></div>`:''}
-        <div class="bank-row"><span class="bank-label">IBAN</span><div style="display:flex;align-items:center;gap:8px;"><span class="bank-value">${esc(b.iban)}</span><button class="copy-btn" onclick="navigator.clipboard.writeText('${esc(b.iban)}');showNotif('✅ IBAN kopiert!');">Kopieren</button></div></div>
-        ${b.bic?`<div class="bank-row"><span class="bank-label">BIC</span><span class="bank-value">${esc(b.bic)}</span></div>`:''}
-        ${b.purpose?`<div class="bank-row"><span class="bank-label">Verwendungszweck</span><span class="bank-value">${esc(b.purpose)}</span></div>`:''}
-      </div>`:`<div style="background:#fff8f2;border:1.5px solid #e8d5c4;border-radius:12px;padding:16px;text-align:center;color:#8c6a52;font-size:14px;">ℹ️ Der Admin hat noch keine Kontodaten hinterlegt.</div>`}
-      <div class="modal-btns" style="margin-top:14px;">
-        <button class="btn-cancel" onclick="closeModal();">Schließen</button>
-      </div>`;
+    let itemsHtml='';
+    myItems.forEach(g=>{
+      itemsHtml+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:14px;">'
+        +'<span>'+esc(g.name)+'</span>'
+        +'<span style="font-weight:bold;">'+(g.price||'–')+'</span>'
+        +'</div>';
+    });
+    let bankHtml='';
+    if(b.iban){
+      bankHtml='<div style="background:#f0f6ff;border:1.5px solid #c0d4f0;border-radius:12px;padding:16px;margin-bottom:16px;">'
+        +'<p style="font-size:13px;color:#888;margin-bottom:12px;font-family:sans-serif;">Bitte überweise den Betrag auf folgendes Konto:</p>';
+      if(b.name)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#888;font-size:12px;font-family:sans-serif;">Empfänger</span><span style="font-weight:bold;">'+esc(b.name)+'</span></div>';
+      bankHtml+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+        +'<span style="color:#888;font-size:12px;font-family:sans-serif;">IBAN</span>'
+        +'<div style="display:flex;align-items:center;gap:8px;">'
+        +'<span style="font-weight:bold;font-family:monospace;">'+esc(b.iban)+'</span>'
+        +'<button onclick="navigator.clipboard.writeText(''+b.iban+'');showNotif('✅ IBAN kopiert!');" style="background:#3a6fd8;color:white;border:none;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;">Kopieren</button>'
+        +'</div></div>';
+      if(b.bic)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#888;font-size:12px;font-family:sans-serif;">BIC</span><span style="font-weight:bold;">'+esc(b.bic)+'</span></div>';
+      if(b.purpose)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#888;font-size:12px;font-family:sans-serif;">Verwendungszweck</span><span style="font-weight:bold;">'+esc(b.purpose)+'</span></div>';
+      bankHtml+='</div>';
+    } else {
+      bankHtml='<div style="background:#fff8f2;border:1.5px solid #e8d5c4;border-radius:12px;padding:16px;text-align:center;color:#8c6a52;font-size:14px;">Der Admin hat noch keine Kontodaten hinterlegt.</div>';
+    }
+    body='<h2>Deine Bestellung</h2>'
+      +'<div style="margin-bottom:16px;">'+itemsHtml+'</div>'
+      +'<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold;padding:10px 0;border-top:2px solid #e0e0e0;margin-bottom:20px;">'
+      +'<span>Gesamt</span>'
+      +'<span style="color:'+t.ac+';">'+(total>0?total.toFixed(2)+' €':'–')+'</span>'
+      +'</div>'
+      +bankHtml
+      +'<div style="display:flex;gap:10px;margin-top:10px;">'
+      +'<button class="btn-cancel" onclick="closeModal();">Schließen</button>'
+      +'</div>';
   }
   else if(type==="bank"){
     const b=data.bankAccount||{};
@@ -728,7 +747,7 @@ function renderSetup(){
 
 // Globale Funktionen zugänglich machen
 // Call updateCartBar after render completes
-
+setTimeout(updateCartBar, 100);
 window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.doSaveBank=doSaveBank;window.renderCartBar=renderCartBar;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.removeHImgItem=removeHImgItem;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
 window.openModal=openModal;window.closeModal=closeModal;window.doLogin=doLogin;window.doSetPw=doSetPw;
 window.doSaveGift=doSaveGift;window.handleUpload=handleUpload;window.clearUpload=clearUpload;
