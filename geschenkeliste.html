@@ -450,7 +450,7 @@ function openModal(type,giftId){
         +'<span style="color:#888;font-size:12px;font-family:sans-serif;">IBAN</span>'
         +'<div style="display:flex;align-items:center;gap:8px;">'
         +'<span style="font-weight:bold;font-family:monospace;">'+esc(b.iban)+'</span>'
-        +'<button onclick="navigator.clipboard.writeText(''+b.iban+'');showNotif('✅ IBAN kopiert!');" style="background:#3a6fd8;color:white;border:none;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;">Kopieren</button>'
+        +'<button onclick="navigator.clipboard.writeText(this.dataset.iban);showNotif(\'IBAN kopiert!\');" data-iban="'+esc(b.iban)+'" style="background:#3a6fd8;color:white;border:none;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;">Kopieren</button>'
         +'</div></div>';
       if(b.bic)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#888;font-size:12px;font-family:sans-serif;">BIC</span><span style="font-weight:bold;">'+esc(b.bic)+'</span></div>';
       if(b.purpose)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#888;font-size:12px;font-family:sans-serif;">Verwendungszweck</span><span style="font-weight:bold;">'+esc(b.purpose)+'</span></div>';
