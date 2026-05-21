@@ -727,12 +727,12 @@ function renderSetup(){
 
 // Globale Funktionen zugänglich machen
 // Call updateCartBar after render completes
-
+setTimeout(updateCartBar, 100);
 window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.doSaveBank=doSaveBank;window.renderCartBar=renderCartBar;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.removeHImgItem=removeHImgItem;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
 window.openModal=openModal;window.closeModal=closeModal;window.doLogin=doLogin;window.doSetPw=doSetPw;
 window.doSaveGift=doSaveGift;window.handleUpload=handleUpload;window.clearUpload=clearUpload;
 window.openDesign=openDesign;window.selTheme=selTheme;window.applyDesign=applyDesign;
-window.logoutAdmin=logoutAdmin;window.updateCartBar=updateCartBar;
+window.logoutAdmin=logoutAdmin;
 
 init();
 </script>
