@@ -178,10 +178,37 @@ function renderSaving(){const el=document.getElementById("saving-badge");if(el)e
 function showNotif(msg){const el=document.getElementById("notif");if(!el)return;const t=THEMES[data.design.theme]||THEMES.warm;el.style.background=t.text;el.style.color=t.bg;el.textContent=msg;el.style.opacity="1";clearTimeout(notifTimer);notifTimer=setTimeout(()=>{el.style.opacity="0";},2500);}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function showLoader(){document.getElementById("root").innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:14px;"><div style="width:44px;height:44px;border:3px solid #f0d9c8;border-top:3px solid #c97d4e;border-radius:50%;animation:spin .8s linear infinite;"></div><p style="font-family:Georgia,serif;color:#c97d4e;">Verbinde mit Datenbank...</p></div>`;}
-function doSetName(){const v=(document.getElementById("nameInp")?.value||"").trim();if(v){userName=v;render();}}
+function doSetName(){const v=(document.getElementById("nameInp")?.value||"").trim();if(v){userName=v;render();setTimeout(updateCartBar,200);}}
 
-async function doClaim(id){if(!userName){showNotif("Bitte gib deinen Namen ein!");return;}data.claims[id]=userName;await saveData();showNotif("🎉 Reserviert!");}
-async function doUnclaim(id){delete data.claims[id];await saveData();showNotif("↩️ Freigegeben");}
+async function doClaim(id){if(!userName){showNotif("Bitte gib deinen Namen ein!");return;}data.claims[id]=userName;await saveData();showNotif("🎉 Reserviert!");updateCartBar();}
+async function doUnclaim(id){delete data.claims[id];await saveData();showNotif("↩️ Freigegeben");updateCartBar();}
+
+function updateCartBar(){
+  // Remove existing
+  const old=document.getElementById('cart-bar');
+  if(old)old.remove();
+  if(!userName)return;
+  const t=THEMES[data.design.theme]||THEMES.warm;
+  const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
+  if(!myItems.length)return;
+  const total=myItems.reduce((sum,g)=>{
+    const raw=(g.price||'').replace(/[^0-9.,]/g,'').replace(',','.');
+    const p=parseFloat(raw);
+    return sum+(isNaN(p)?0:p);
+  },0);
+  const bar=document.createElement('div');
+  bar.id='cart-bar';
+  bar.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:8000;padding:14px 16px;box-shadow:0 -4px 20px rgba(0,0,0,.4);background:'+t.text+';color:'+t.bg+';font-family:Georgia,serif;';
+  bar.innerHTML=
+    '<div style="max-width:700px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">'
+    +'<div>'
+    +'<div style="font-size:20px;font-weight:bold;">💰 Gesamt: '+(total>0?total.toFixed(2)+' €':'Preise nicht angegeben')+'</div>'
+    +'<div style="font-size:12px;opacity:.75;margin-top:2px;">'+myItems.length+' Artikel reserviert'+'</div>'
+    +'</div>'
+    +'<button onclick="openModal('cart');" style="background:'+t.ac+';color:white;border:none;border-radius:10px;padding:11px 20px;font-size:15px;font-family:Georgia,serif;font-weight:bold;cursor:pointer;">📋 Zahlungsinfos</button>'
+    +'</div>';
+  document.body.appendChild(bar);
+}
 async function doRemove(id){if(!confirm("Artikel entfernen?"))return;data.gifts=data.gifts.filter(g=>g.id!==id);delete data.claims[id];await saveData();showNotif("🗑️ Entfernt");}
 
 function render(){
@@ -699,6 +726,8 @@ function renderSetup(){
 }
 
 // Globale Funktionen zugänglich machen
+// Call updateCartBar after render completes
+setTimeout(updateCartBar, 100);
 window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.doSaveBank=doSaveBank;window.renderCartBar=renderCartBar;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.removeHImgItem=removeHImgItem;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
 window.openModal=openModal;window.closeModal=closeModal;window.doLogin=doLogin;window.doSetPw=doSetPw;
 window.doSaveGift=doSaveGift;window.handleUpload=handleUpload;window.clearUpload=clearUpload;
