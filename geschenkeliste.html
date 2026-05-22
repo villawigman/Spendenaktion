@@ -338,7 +338,11 @@ async function doSaveBank(){
     name:document.getElementById("m-bname")?.value||"",
     iban:document.getElementById("m-biban")?.value||"",
     bic:document.getElementById("m-bbic")?.value||"",
-    purpose:document.getElementById("m-bpurpose")?.value||"Spendenaktion"
+    purpose:document.getElementById("m-bpurpose")?.value||"Spendenaktion",
+    paypal:document.getElementById("m-bpaypal")?.value||"",
+    klarna:document.getElementById("m-bklarna")?.value||"",
+    other:document.getElementById("m-bother")?.value||"",
+    otherLabel:document.getElementById("m-botherlabel")?.value||""
   };
   closeModal();await saveData();showNotif("🏦 Kontodaten gespeichert!");
 }
@@ -482,6 +486,13 @@ function openModal(type,giftId){
       <input id="m-bbic" value="${esc(b.bic||'')}" placeholder="z.B. DEUTDEDB"/>
       <label>Verwendungszweck</label>
       <input id="m-bpurpose" value="${esc(b.purpose||'Spendenaktion')}" placeholder="z.B. Spendenaktion"/>
+      <label>PayPal-Link (optional)</label>
+      <input id="m-bpaypal" value="${esc(b.paypal||'')}" placeholder="https://paypal.me/deinname"/>
+      <label>Klarna-Link (optional)</label>
+      <input id="m-bklarna" value="${esc(b.klarna||'')}" placeholder="https://..."/>
+      <label>Weiterer Zahlungslink (optional)</label>
+      <input id="m-bother" value="${esc(b.other||'')}" placeholder="https://..."/>
+      <input id="m-botherlabel" value="${esc(b.otherLabel||'')}" placeholder="Bezeichnung z.B. Revolut, Wise..."/>
       <div class="modal-btns" style="margin-top:14px;">
         <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
         <button class="btn-save" style="background:${t.ac};" onclick="doSaveBank();">Speichern</button>
