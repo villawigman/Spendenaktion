@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -264,7 +265,7 @@ function render(){
   document.title=d.headerText||"Artikelliste";
 
   let adminHtml="";
-  if(isAdmin){adminHtml=`<div style="display:inline-flex;align-items:center;gap:8px;background:${t.tag};border:1.5px solid ${t.ac};color:${t.ac};border-radius:999px;padding:5px 14px;font-size:12px;font-family:sans-serif;">👑 Admin<button onclick="logoutAdmin();" style="background:transparent;border:1px solid ${t.ac};border-radius:7px;padding:2px 8px;font-size:11px;color:${t.ac};cursor:pointer;">Abmelden</button></div><button onclick="openDesign();" style="background:${t.ac};color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🎨 Design</button><button onclick="openModal('bank');" style="background:${t.text};color:${t.bg};border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🏦 Kontodaten</button>`;}
+  if(isAdmin){adminHtml=`<div style="display:inline-flex;align-items:center;gap:8px;background:${t.tag};border:1.5px solid ${t.ac};color:${t.ac};border-radius:999px;padding:5px 14px;font-size:12px;font-family:sans-serif;">👑 Admin<button onclick="logoutAdmin();" style="background:transparent;border:1px solid ${t.ac};border-radius:7px;padding:2px 8px;font-size:11px;color:${t.ac};cursor:pointer;">Abmelden</button></div><button onclick="openDesign();" style="background:${t.ac};color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🎨 Design</button><button onclick="openModal('bank');" style="background:${t.text};color:${t.bg};border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🏦 Kontodaten</button><button onclick="openModal('unlock');" style="background:#e53935;color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🔓 Sperren aufheben</button>`;}
   else if(!data.adminPassword){adminHtml=`<button onclick="openModal('setpw');" style="background:${t.text};color:${t.bg};border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🔐 Admin-Passwort festlegen</button>`;}
   else{adminHtml=`<button onclick="openModal('login');" style="background:transparent;color:${t.sub};border:1px solid ${t.brd};border-radius:999px;padding:7px 16px;font-size:13px;cursor:pointer;border:1px solid ${t.brd};">🔑 Als Admin anmelden</button>`;}
 
@@ -413,6 +414,15 @@ function selColorCustom(hiddenId,color){
   const row=document.getElementById(hiddenId)?.closest?document.getElementById(hiddenId+'-picker')?.closest('.color-row'):null;
   if(row)row.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));
 }
+async function unlockUser(name){
+  if(!data.lockedUsers)return;
+  delete data.lockedUsers[name];
+  await saveData();
+  showNotif("🔓 "+name+" entsperrt!");
+  closeModal();
+  openModal("unlock");
+}
+
 async function doSaveBank(){
   data.bankAccount={
     name:document.getElementById("m-bname")?.value||"",
@@ -566,6 +576,21 @@ function openModal(type,giftId){
       +'<div style="display:flex;gap:10px;margin-top:10px;">'
       +'<button onclick="downloadSummary();" style="flex:1;padding:10px;border-radius:10px;border:none;background:#4a8c5c;color:white;font-family:Georgia,serif;font-weight:bold;cursor:pointer;font-size:14px;">📥 Zusammenfassung herunterladen</button>'
       +'<button onclick="closeModal();" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #3d2b1f;background:#3d2b1f;color:white;font-family:Georgia,serif;font-weight:bold;cursor:pointer;font-size:14px;">Beenden</button>'
+      +'</div>';
+  }
+  else if(type==="unlock"){
+    const locked=Object.keys(data.lockedUsers||{});
+    const rows=locked.length
+      ?locked.map(name=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;">'
+        +'<span style="font-size:15px;color:#222;">👤 '+esc(name)+'</span>'
+        +'<button onclick="unlockUser(''+esc(name)+'');" style="background:#4a8c5c;color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:sans-serif;">🔓 Entsperren</button>'
+        +'</div>').join('')
+      :'<p style="text-align:center;color:#888;font-style:italic;padding:16px;">Keine gesperrten Nutzer</p>';
+    body='<h2 style="color:#222;">🔓 Sperren aufheben</h2>'
+      +'<p style="font-size:13px;color:#888;margin-bottom:16px;font-family:sans-serif;">Gesperrte Nutzer können nach dem Entsperren ihre Auswahl wieder ändern.</p>'
+      +'<div>'+rows+'</div>'
+      +'<div style="margin-top:16px;">'
+      +'<button class="btn-cancel" onclick="closeModal();">Schließen</button>'
       +'</div>';
   }
   else if(type==="bank"){
@@ -871,7 +896,7 @@ function renderSetup(){
 // Globale Funktionen zugänglich machen
 // Call updateCartBar after render completes
 setTimeout(updateCartBar, 100);
-window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.openConfirmModal=openConfirmModal;window.confirmAndPay=confirmAndPay;window.downloadSummary=downloadSummary;window.doSaveBank=doSaveBank;window.renderCartBar=renderCartBar;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.removeHImgItem=removeHImgItem;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
+window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.openConfirmModal=openConfirmModal;window.confirmAndPay=confirmAndPay;window.downloadSummary=downloadSummary;window.doSaveBank=doSaveBank;window.unlockUser=unlockUser;window.renderCartBar=renderCartBar;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.removeHImgItem=removeHImgItem;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
 window.openModal=openModal;window.closeModal=closeModal;window.doLogin=doLogin;window.doSetPw=doSetPw;
 window.doSaveGift=doSaveGift;window.handleUpload=handleUpload;window.clearUpload=clearUpload;
 window.openDesign=openDesign;window.selTheme=selTheme;window.applyDesign=applyDesign;
