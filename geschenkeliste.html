@@ -563,13 +563,13 @@ function openModal(type,giftId){
       if(b.iban){
         bankHtml+='<div style="background:white;border-radius:8px;padding:12px;margin-bottom:8px;">';
         if(b.name)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:#555;font-size:12px;font-family:sans-serif;">Empfänger</span><span style="font-weight:bold;color:#222;">'+esc(b.name)+'</span></div>';
-        bankHtml+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
-          +'<span style="color:#555;font-size:12px;font-family:sans-serif;">IBAN</span>'
-          +'<div style="display:flex;align-items:center;gap:8px;">'
-          +'<span style="font-weight:bold;font-family:monospace;color:#222;font-size:12px;">'+esc(b.iban)+'</span>'
-          +'<button onclick="navigator.clipboard.writeText(this.dataset.iban);showNotif(\'IBAN kopiert!\');" data-iban="'+esc(b.iban)+'" style="background:#3a6fd8;color:white;border:none;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;">Kopieren</button>'
-          +'</div></div>';
-        if(b.bic)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:#555;font-size:12px;font-family:sans-serif;">BIC</span><span style="font-weight:bold;color:#222;">'+esc(b.bic)+'</span></div>';
+        bankHtml+='<div style="margin-bottom:10px;">'
+          +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:#555;font-size:12px;font-family:sans-serif;">IBAN</span></div>'
+          +'<div style="font-weight:bold;font-family:monospace;color:#222;font-size:13px;word-break:break-all;margin-bottom:6px;">'+esc(b.iban)+'</div>'
+          +'<button onclick="navigator.clipboard.writeText(this.dataset.iban);showNotif(\'IBAN kopiert!\');" data-iban="'+esc(b.iban)+'" style="background:#3a6fd8;color:white;border:none;border-radius:6px;padding:6px;font-size:12px;cursor:pointer;width:100%;text-align:center;">📋 IBAN kopieren</button>'
+          +'</div>';
+
+
         if(b.purpose)bankHtml+='<div style="display:flex;justify-content:space-between;"><span style="color:#555;font-size:12px;font-family:sans-serif;">Verwendungszweck</span><span style="font-weight:bold;color:#222;">'+esc(b.purpose)+'</span></div>';
         bankHtml+='</div>';
       }
