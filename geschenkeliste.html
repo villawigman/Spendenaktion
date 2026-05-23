@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -150,6 +149,7 @@ async function init(){
         data.headerImgs=val.headerImgs||[];
         data.textBlocks=val.textBlocks||[];
         data.bankAccount=val.bankAccount||{};
+        data.lockedUsers=val.lockedUsers||{};
       }
       restoreAdmin();
       render();
@@ -184,8 +184,15 @@ function showLoader(){document.getElementById("root").innerHTML=`<div style="dis
 function doSetName(){const v=(document.getElementById("nameInp")?.value||"").trim();if(v){userName=v;try{localStorage.setItem("gl-username",v);}catch(e){}render();setTimeout(updateCartBar,200);}}
 function getSavedName(){try{return localStorage.getItem("gl-username")||"";}catch(e){return "";}}
 
-async function doClaim(id){if(!userName){showNotif("Bitte gib deinen Namen ein!");return;}data.claims[id]=userName;await saveData();showNotif("🎉 Reserviert!");updateCartBar();}
-async function doUnclaim(id){delete data.claims[id];await saveData();showNotif("↩️ Freigegeben");updateCartBar();}
+async function doClaim(id){
+  if(!userName){showNotif("Bitte gib deinen Namen ein!");return;}
+  if(data.lockedUsers&&data.lockedUsers[userName]){showNotif("❌ Deine Auswahl ist bereits abgeschlossen!");return;}
+  data.claims[id]=userName;await saveData();showNotif("🎉 Reserviert!");updateCartBar();
+}
+async function doUnclaim(id){
+  if(data.lockedUsers&&data.lockedUsers[userName]){showNotif("❌ Deine Auswahl ist bereits abgeschlossen!");return;}
+  delete data.claims[id];await saveData();showNotif("↩️ Freigegeben");updateCartBar();
+}
 
 function downloadSummary(){
   const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
@@ -264,7 +271,7 @@ function render(){
   const savedName=getSavedName();
   const nameBar=!userName
     ?`<div class="name-card" style="background:white;border:2px solid ${t.ac};"><p style="color:#222;font-size:17px;font-weight:bold;margin-bottom:12px;">Wie heißt du? 👋</p><div class="input-row"><input id="nameInp" placeholder="Dein Name..." style="margin-bottom:0;color:#222;background:#ffffff;border:2px solid ${t.ac};font-size:16px;font-weight:bold;" onkeydown="if(event.key==='Enter')doSetName();"/><button onclick="doSetName();" style="background:${t.ac};color:white;white-space:nowrap;padding:9px 18px;border-radius:10px;font-weight:bold;font-size:14px;border:none;">Los!</button></div></div>`
-    :`<div class="welcome-bar" style="color:#3d2b1f;">👤 Hallo, <strong>${esc(userName)}</strong>!${!savedName?'<button onclick="userName=\'\';render();" style="background:transparent;border:1px solid '+t.brd+';border-radius:7px;padding:3px 10px;font-size:11px;color:'+t.sub+';cursor:pointer;">Wechseln</button>':''}</div>`;
+    :`<div class="welcome-bar" style="color:#3d2b1f;">👤 Hallo, <strong>${esc(userName)}</strong>!${(!savedName&&!(data.lockedUsers&&data.lockedUsers[userName]))?'<button onclick="userName=\'\';render();" style="background:transparent;border:1px solid '+t.brd+';border-radius:7px;padding:3px 10px;font-size:11px;color:'+t.sub+';cursor:pointer;">Wechseln</button>':'${(data.lockedUsers&&data.lockedUsers[userName])?'<span style="font-size:11px;color:#c97d4e;font-family:sans-serif;margin-left:6px;">🔒 Gesperrt</span>':''}'}</div>`;
 
   // Combine gifts and text blocks, sorted by order
 const allItems=[...data.gifts.map(g=>({...g,_type:'gift'})),...(data.textBlocks||[]).map(b=>({...b,_type:'text'}))].sort((a,b)=>(a.order||0)-(b.order||0));
@@ -283,8 +290,10 @@ const g=item;
     if(g.productUrl)meta+=`<a class="product-link" href="${esc(g.productUrl)}" target="_blank">🔗 Zum Produkt</a>`;
     let status=isMine?`<div class="card-status" style="color:${t.ac};font-weight:bold;">✅ Du spendest das!</div>`:isTaken?`<div class="card-status" style="color:${t.sub};">🔒 ${esc(claimer)} spendet das</div>`:`<div class="card-status" style="color:#4caf79;">✨ Noch frei</div>`;
     let acts="";
-    if(!claimer&&userName)acts+=`<button class="btn-accent" onclick="doClaim(${g.id});" style="background:${t.ac};">Ich spende das!</button>`;
-    if(isMine)acts+=`<button class="btn-outline" onclick="doUnclaim(${g.id});" style="border:1.5px solid ${t.ac};color:${t.ac};">Freigeben</button>`;
+    const isLocked=!!(data.lockedUsers&&data.lockedUsers[userName]);
+    if(!claimer&&userName&&!isLocked)acts+=`<button class="btn-accent" onclick="doClaim(${g.id});" style="background:${t.ac};">Ich spende das!</button>`;
+    if(isMine&&!isLocked)acts+=`<button class="btn-outline" onclick="doUnclaim(${g.id});" style="border:1.5px solid ${t.ac};color:${t.ac};">Freigeben</button>`;
+    if(isMine&&isLocked)acts+=`<span style="font-size:11px;color:${t.sub};font-family:sans-serif;">🔒 Abgeschlossen</span>`;
     if(isAdmin){acts+=`<button class="btn-icon" onclick="openModal('gift',${g.id});">✏️</button>`;acts+=`<button class="btn-icon" onclick="doRemove(${g.id});">🗑️</button>`;}
     // Pick readable text color based on card bg brightness
 const hex=(g.cardBg||'#ffffff').replace('#','');
@@ -358,15 +367,12 @@ function openConfirmModal(){
 
 async function confirmAndPay(){
   document.getElementById("confirm-overlay")?.remove();
-  // Lock the user name
+  // Lock this user in Firebase
+  if(!data.lockedUsers)data.lockedUsers={};
+  data.lockedUsers[userName]=true;
+  await saveData();
   try{localStorage.setItem("gl-username-locked","true");}catch(e){}
-  // Send summary email in background
-  const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
-  const total=myItems.reduce((sum,g)=>{const p=parseFloat((g.price||"").replace(/[^0-9.,]/g,"").replace(",","."));return sum+(isNaN(p)?0:p);},0);
-  const itemList=myItems.map(g=>g.name+" - "+(g.price||"Preis nicht angegeben")).join("%0A");
-  const subject="Neue Bestellung: "+encodeURIComponent(userName);
-  const body="Neue Bestellung von: "+encodeURIComponent(userName)+"%0A%0AArtikel:%0A"+itemList+"%0A%0AGesamt: "+(total>0?total.toFixed(2)+" Euro":"nicht berechnet");
-  // Open payment modal only - email opens only when user clicks the button
+  // Open payment modal
   openModal("cart");
 }
 
