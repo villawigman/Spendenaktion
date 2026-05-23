@@ -222,7 +222,7 @@ function updateCartBar(){
     +'<div style="font-size:20px;font-weight:bold;">💰 Gesamt: '+(total>0?total.toFixed(2)+' €':'Preise nicht angegeben')+'</div>'
     +'<div style="font-size:12px;opacity:.75;margin-top:2px;">'+myItems.length+' Artikel reserviert'+'</div>'
     +'</div>'
-    +'<button onclick="openModal(\'cart\');" style="background:'+t.ac+';color:white;border:none;border-radius:10px;padding:11px 20px;font-size:15px;font-family:Georgia,serif;font-weight:bold;cursor:pointer;">Zahlungsinfos</button>'
+    +'<button onclick="openConfirmModal();" style="background:'+t.ac+';color:white;border:none;border-radius:10px;padding:11px 20px;font-size:15px;font-family:Georgia,serif;font-weight:bold;cursor:pointer;">Zahlungsinfos</button>'
     +'</div>';
   document.body.appendChild(bar);
 }
@@ -242,7 +242,7 @@ function render(){
 
   const savedName=getSavedName();
   const nameBar=!userName
-    ?`<div class="name-card"><p style="color:#3d2b1f;">Wie heißt du? 👋</p><div class="input-row"><input id="nameInp" placeholder="Dein Name..." style="margin-bottom:0;color:#3d2b1f;background:#fdf6ee;border:1.5px solid #e0c9b5;" onkeydown="if(event.key==='Enter')doSetName();"/><button onclick="doSetName();" style="background:${t.ac};color:white;white-space:nowrap;padding:9px 18px;border-radius:10px;font-weight:bold;font-size:14px;border:none;">Los!</button></div></div>`
+    ?`<div class="name-card" style="background:white;border:2px solid ${t.ac};"><p style="color:#222;font-size:17px;font-weight:bold;margin-bottom:12px;">Wie heißt du? 👋</p><div class="input-row"><input id="nameInp" placeholder="Dein Name..." style="margin-bottom:0;color:#222;background:#ffffff;border:2px solid ${t.ac};font-size:16px;font-weight:bold;" onkeydown="if(event.key==='Enter')doSetName();"/><button onclick="doSetName();" style="background:${t.ac};color:white;white-space:nowrap;padding:9px 18px;border-radius:10px;font-weight:bold;font-size:14px;border:none;">Los!</button></div></div>`
     :`<div class="welcome-bar" style="color:#3d2b1f;">👤 Hallo, <strong>${esc(userName)}</strong>!${!savedName?'<button onclick="userName=\'\';render();" style="background:transparent;border:1px solid '+t.brd+';border-radius:7px;padding:3px 10px;font-size:11px;color:'+t.sub+';cursor:pointer;">Wechseln</button>':''}</div>`;
 
   // Combine gifts and text blocks, sorted by order
