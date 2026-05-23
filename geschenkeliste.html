@@ -189,15 +189,35 @@ async function doUnclaim(id){delete data.claims[id];await saveData();showNotif("
 function downloadSummary(){
   const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
   const total=myItems.reduce((sum,g)=>{const p=parseFloat((g.price||"").replace(/[^0-9.,]/g,"").replace(",","."));return sum+(isNaN(p)?0:p);},0);
-  const lines=["Bestellung von: "+userName,"Datum: "+new Date().toLocaleDateString("de-DE"),"","Artikel:"];
-  myItems.forEach(g=>lines.push("- "+g.name+" "+( g.price||"")));
-  lines.push("");
-  lines.push("Gesamt: "+(total>0?total.toFixed(2)+" Euro":"nicht berechnet"));
-  const blob=new Blob([lines.join("\n")],{type:"text/plain;charset=utf-8"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="Bestellung_"+userName+".txt";
-  a.click();
+  const b=data.bankAccount||{};
+  const date=new Date().toLocaleDateString("de-DE");
+  const itemRows=myItems.map(g=>'<tr><td style="padding:10px;border-bottom:1px solid #eee;">'+g.name+'</td><td style="padding:10px;border-bottom:1px solid #eee;text-align:right;font-weight:bold;">'+(g.price||'–')+'</td></tr>').join('');
+  const bankInfo=b.iban?'<div style="background:#f0f6ff;border-radius:8px;padding:16px;margin-top:20px;"><p style="font-weight:bold;margin-bottom:8px;">Zahlungsinformationen:</p>'
+    +(b.name?'<p>Empfänger: <strong>'+b.name+'</strong></p>':'')
+    +'<p>IBAN: <strong>'+b.iban+'</strong></p>'
+    +(b.bic?'<p>BIC: <strong>'+b.bic+'</strong></p>':'')
+    +(b.purpose?'<p>Verwendungszweck: <strong>'+b.purpose+'</strong></p>':'')
+    +'</div>':'';
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Bestellung '+userName+'</title>'
+    +'<style>body{font-family:Georgia,serif;max-width:600px;margin:40px auto;padding:20px;color:#222;}'
+    +'h1{color:#c97d4e;border-bottom:2px solid #c97d4e;padding-bottom:8px;}'
+    +'table{width:100%;border-collapse:collapse;margin:16px 0;}'
+    +'.total{font-size:18px;font-weight:bold;text-align:right;color:#c97d4e;padding:12px 0;border-top:2px solid #222;}'
+    +'@media print{body{margin:0;}}'
+    +'</style></head><body>'
+    +'<h1>Bestellübersicht</h1>'
+    +'<p><strong>Name:</strong> '+userName+'</p>'
+    +'<p><strong>Datum:</strong> '+date+'</p>'
+    +'<table>'+itemRows+'</table>'
+    +'<div class="total">Gesamt: '+(total>0?total.toFixed(2)+' €':'nicht berechnet')+'</div>'
+    +bankInfo
+    +'<p style="margin-top:30px;font-size:12px;color:#888;">Vielen Dank für deine Spende! Villa Wigman für Tanz e.V.</p>'
+    +'<p style="font-size:12px;color:#888;margin-top:40px;border-top:1px solid #eee;padding-top:8px;">Zum Speichern als PDF: Datei → Drucken → Als PDF speichern</p>'
+    +'</body></html>';
+  const win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(()=>win.print(),500);
 }
 
 function updateCartBar(){
