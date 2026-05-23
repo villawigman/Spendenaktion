@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -447,19 +448,32 @@ function openModal(type,giftId){
         +'</div>';
     });
     let bankHtml='';
-    if(b.iban){
-      bankHtml='<div style="background:#f0f6ff;border:1.5px solid #c0d4f0;border-radius:12px;padding:16px;margin-bottom:16px;">'
-        +'<p style="font-size:13px;color:#444;margin-bottom:12px;font-family:sans-serif;">Bitte überweise den Betrag auf folgendes Konto:</p>';
-      if(b.name)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#555;font-size:12px;font-family:sans-serif;">Empfänger</span><span style="font-weight:bold;color:#222;">'+esc(b.name)+'</span></div>';
-      bankHtml+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
-        +'<span style="color:#888;font-size:12px;font-family:sans-serif;">IBAN</span>'
-        +'<div style="display:flex;align-items:center;gap:8px;">'
-        +'<span style="font-weight:bold;font-family:monospace;color:#222;">'+esc(b.iban)+'</span>'
-        +'<button onclick="navigator.clipboard.writeText(this.dataset.iban);showNotif(\'IBAN kopiert!\');" data-iban="'+esc(b.iban)+'" style="background:#3a6fd8;color:white;border:none;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;">Kopieren</button>'
-        +'</div></div>';
-      if(b.bic)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#888;font-size:12px;font-family:sans-serif;color:#555;">BIC</span><span style="font-weight:bold;color:#222;">'+esc(b.bic)+'</span></div>';
-      if(b.purpose)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#888;font-size:12px;font-family:sans-serif;color:#555;">Verwendungszweck</span><span style="font-weight:bold;color:#222;">'+esc(b.purpose)+'</span></div>';
+    if(b.iban||b.paypal||b.klarna||b.other){
+      bankHtml='<div style="background:#f0f6ff;border:1.5px solid #c0d4f0;border-radius:12px;padding:16px;margin-bottom:12px;">'
+        +'<p style="font-size:13px;color:#444;margin-bottom:12px;font-family:sans-serif;font-weight:bold;">Zahlungsmoeglichkeiten:</p>';
+      if(b.iban){
+        bankHtml+='<div style="background:white;border-radius:8px;padding:12px;margin-bottom:8px;">';
+        if(b.name)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:#555;font-size:12px;font-family:sans-serif;">Empfänger</span><span style="font-weight:bold;color:#222;">'+esc(b.name)+'</span></div>';
+        bankHtml+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+          +'<span style="color:#555;font-size:12px;font-family:sans-serif;">IBAN</span>'
+          +'<div style="display:flex;align-items:center;gap:8px;">'
+          +'<span style="font-weight:bold;font-family:monospace;color:#222;font-size:12px;">'+esc(b.iban)+'</span>'
+          +'<button onclick="navigator.clipboard.writeText(this.dataset.iban);showNotif('IBAN kopiert!');" data-iban="'+esc(b.iban)+'" style="background:#3a6fd8;color:white;border:none;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;">Kopieren</button>'
+          +'</div></div>';
+        if(b.bic)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:#555;font-size:12px;font-family:sans-serif;">BIC</span><span style="font-weight:bold;color:#222;">'+esc(b.bic)+'</span></div>';
+        if(b.purpose)bankHtml+='<div style="display:flex;justify-content:space-between;"><span style="color:#555;font-size:12px;font-family:sans-serif;">Verwendungszweck</span><span style="font-weight:bold;color:#222;">'+esc(b.purpose)+'</span></div>';
+        bankHtml+='</div>';
+      }
+      var payBtns='';
+      if(b.paypal)payBtns+='<a href="'+b.paypal+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#003087;color:white;text-decoration:none;border-radius:8px;padding:10px 16px;font-size:13px;font-family:sans-serif;font-weight:bold;margin:4px;">💙 PayPal</a>';
+      if(b.klarna)payBtns+='<a href="'+b.klarna+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#ffb3c7;color:#17120e;text-decoration:none;border-radius:8px;padding:10px 16px;font-size:13px;font-family:sans-serif;font-weight:bold;margin:4px;">🌸 Klarna</a>';
+      if(b.other)payBtns+='<a href="'+b.other+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#6c757d;color:white;text-decoration:none;border-radius:8px;padding:10px 16px;font-size:13px;font-family:sans-serif;font-weight:bold;margin:4px;">'+(b.otherLabel||'Weitere Zahlung')+'</a>';
+      if(payBtns)bankHtml+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">'+payBtns+'</div>';
       bankHtml+='</div>';
+      bankHtml+='<div style="background:#fff8f2;border:1.5px solid #e8d5c4;border-radius:12px;padding:14px;margin-bottom:12px;text-align:center;">'
+        +'<a href="mailto:gl@villawigman.de?subject=Spendenbescheinigung&body=Hallo,%0AIch moechte eine Spendenbescheinigung erhalten.%0A%0AMein Name und Adresse:%0A" style="display:inline-block;background:#c97d4e;color:white;text-decoration:none;border-radius:10px;padding:10px 20px;font-size:13px;font-family:Georgia,serif;font-weight:bold;">📄 Ab 50 Euro Spendenbescheinigung erhalten</a>'
+        +'<p style="font-size:11px;color:#8c6a52;margin-top:8px;font-family:sans-serif;">Klicke um deine Adresse per E-Mail mitzuteilen</p>'
+        +'</div>';
     } else {
       bankHtml='<div style="background:#fff8f2;border:1.5px solid #e8d5c4;border-radius:12px;padding:16px;text-align:center;color:#8c6a52;font-size:14px;">Der Admin hat noch keine Kontodaten hinterlegt.</div>';
     }
