@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -359,14 +360,13 @@ async function confirmAndPay(){
   document.getElementById("confirm-overlay")?.remove();
   // Lock the user name
   try{localStorage.setItem("gl-username-locked","true");}catch(e){}
-  // Send summary email
+  // Send summary email in background
   const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
   const total=myItems.reduce((sum,g)=>{const p=parseFloat((g.price||"").replace(/[^0-9.,]/g,"").replace(",","."));return sum+(isNaN(p)?0:p);},0);
   const itemList=myItems.map(g=>g.name+" - "+(g.price||"Preis nicht angegeben")).join("%0A");
   const subject="Neue Bestellung: "+encodeURIComponent(userName);
   const body="Neue Bestellung von: "+encodeURIComponent(userName)+"%0A%0AArtikel:%0A"+itemList+"%0A%0AGesamt: "+(total>0?total.toFixed(2)+" Euro":"nicht berechnet");
-  window.open("mailto:gl@villawigman.de?subject="+subject+"&body="+body);
-  // Open payment modal
+  // Open payment modal only - email opens only when user clicks the button
   openModal("cart");
 }
 
