@@ -272,7 +272,7 @@ function updateCartBar(){
     +'<div style="font-size:20px;font-weight:bold;">💰 Gesamt: '+(total>0?total.toFixed(2)+' €':'Preise nicht angegeben')+'</div>'
     +'<div style="font-size:12px;opacity:.75;margin-top:2px;">'+myItems.length+' Artikel reserviert'+'</div>'
     +'</div>'
-    +'<button onclick="openConfirmModal();" style="background:'+t.ac+';color:white;border:none;border-radius:10px;padding:11px 20px;font-size:15px;font-family:Georgia,serif;font-weight:bold;cursor:pointer;">Zahlungsinfos</button>'
+    +'<button onclick="openConfirmModal();" style="background:'+t.ac+';color:white;border:none;border-radius:10px;padding:11px 20px;font-size:15px;font-family:Georgia,serif;font-weight:bold;cursor:pointer;">Informationen zur Überweisung</button>'
     +'</div>';
   document.body.appendChild(bar);
 }
@@ -419,7 +419,7 @@ function renderCartBar(t){
         <div class="cart-items">${myItems.length} Artikel: ${itemNames}</div>
       </div>
       <button onclick="openModal('cart');" style="background:${t.ac};color:white;border:none;border-radius:10px;padding:10px 18px;font-size:14px;font-family:Georgia,serif;font-weight:bold;cursor:pointer;">
-        📋 Zahlungsinfos
+        📋 Informationen zur Überweisung
       </button>
     </div>
   </div>`;
@@ -586,7 +586,7 @@ function openModal(type,giftId){
     } else {
       bankHtml='<div style="background:#fff8f2;border:1.5px solid #e8d5c4;border-radius:12px;padding:16px;text-align:center;color:#8c6a52;font-size:14px;">Der Admin hat noch keine Kontodaten hinterlegt.</div>';
     }
-    body='<h2 style="color:#222;">Deine Bestellung</h2>'
+    body='<h2 style="color:#222;">Deine Auswahl</h2>'
       +'<div style="margin-bottom:16px;">'+itemsHtml+'</div>'
       +'<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold;padding:10px 0;border-top:2px solid #e0e0e0;margin-bottom:20px;color:#222;">'
       +'<span>Gesamt</span>'
@@ -618,7 +618,7 @@ function openModal(type,giftId){
   else if(type==="bank"){
     const b=data.bankAccount||{};
     body=`<h2>🏦 Kontodaten eingeben</h2>
-      <p style="font-size:13px;color:#888;font-style:italic;margin-bottom:16px;">Diese Daten sehen alle Nutzer wenn sie auf "Zahlungsinfos" klicken.</p>
+      <p style="font-size:13px;color:#888;font-style:italic;margin-bottom:16px;">Diese Daten sehen alle Nutzer wenn sie auf "Informationen zur Überweisung" klicken.</p>
       <label>Empfänger Name</label>
       <input id="m-bname" value="${esc(b.name||'')}" placeholder="z.B. Max Mustermann"/>
       <label>IBAN</label>
