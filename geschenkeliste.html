@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -559,9 +560,9 @@ function openModal(type,giftId){
     const b=data.bankAccount||{};
     let itemsHtml='';
     myItems.forEach(g=>{
-      itemsHtml+='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e0e0e0;font-size:14px;color:#222;">'
+      itemsHtml+='<div style="display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #444;font-size:14px;color:white;background:#222;">'
         +'<span>'+esc(g.name)+'</span>'
-        +'<span style="font-weight:bold;color:#222;">'+(g.price||'–')+'</span>'
+        +'<span style="font-weight:bold;">'+(g.price||'–')+'</span>'
         +'</div>';
     });
     let bankHtml='';
