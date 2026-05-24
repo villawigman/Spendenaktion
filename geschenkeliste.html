@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -244,10 +245,12 @@ function downloadSummary(){
     +'<p style="margin-top:30px;font-size:12px;color:#888;">Vielen Dank für deine Spende! Villa Wigman für Tanz e.V.</p>'
     +'<p style="font-size:12px;color:#888;margin-top:40px;border-top:1px solid #eee;padding-top:8px;">Zum Speichern als PDF: Datei → Drucken → Als PDF speichern</p>'
     +'</body></html>';
-  const win=window.open('','_blank');
-  win.document.write(html);
-  win.document.close();
-  setTimeout(()=>win.print(),500);
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Auswahl_'+userName+'_'+new Date().toLocaleDateString('de-DE').replace(/\./g,'-')+'.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 function updateCartBar(){
