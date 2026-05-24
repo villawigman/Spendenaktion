@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -376,7 +375,13 @@ return `<div class="card${isMine?" mine":isTaken?" taken":""}" style="background
     </div>`;
 }
 
-function closeModal(){document.getElementById("modal-overlay")?.remove();}
+function closeModal(){
+  document.getElementById("modal-overlay")?.remove();
+  // If user is locked, remove cart bar too
+  if(data.lockedUsers&&data.lockedUsers[userName]){
+    document.getElementById("cart-bar")?.remove();
+  }
+}
 
 function openConfirmModal(){
   const t=THEMES[data.design.theme]||THEMES.warm;
