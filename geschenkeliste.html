@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -82,6 +81,10 @@ footer{text-align:center;margin-top:48px;font-size:11px;font-family:sans-serif;o
 .bank-label{color:#888;font-family:sans-serif;font-size:12px}
 .bank-value{font-weight:bold;font-family:monospace;font-size:14px}
 .copy-btn{background:#3a6fd8;color:white;border:none;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:sans-serif}
+.rules-code{background:#1e1e2e;color:#cdd6f4;border-radius:10px;padding:14px;font-family:monospace;font-size:12px;line-height:1.6;white-space:pre;overflow-x:auto;margin-bottom:12px;border:1px solid #313244}
+.rules-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px;padding:12px;border-radius:10px;background:#f8f4f0;border:1px solid #e8d5c4}
+.rules-step-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;flex-shrink:0;font-family:sans-serif;color:white}
+.rules-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-family:sans-serif;padding:4px 12px;border-radius:999px;margin-bottom:12px}
 @media(max-width:600px){.grid{grid-template-columns:1fr}}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
@@ -93,7 +96,7 @@ footer{text-align:center;margin-top:48px;font-size:11px;font-family:sans-serif;o
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"; 
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ================================================================
 // ⚙️ DEINE FIREBASE-KONFIGURATION — hier eintragen!
@@ -109,9 +112,51 @@ const firebaseConfig = {
 };
 // ================================================================
 
+// ================================================================
+// 🔒 EMPFOHLENE FIREBASE SECURITY RULES
+// Diese Rules in die Firebase Console unter
+// Realtime Database → Regeln einfügen und veröffentlichen!
+// ================================================================
+const RECOMMENDED_RULES = `{
+  "rules": {
+    ".read": true,
 
+    "gifts": {
+      ".write": "auth != null"
+    },
+    "design": {
+      ".write": "auth != null"
+    },
+    "headerBlocks": {
+      ".write": "auth != null"
+    },
+    "headerImgs": {
+      ".write": "auth != null"
+    },
+    "textBlocks": {
+      ".write": "auth != null"
+    },
+    "bankAccount": {
+      ".write": "auth != null"
+    },
+    "lockedUsers": {
+      ".write": "auth != null"
+    },
+    "adminPassword": {
+      ".write": "auth != null"
+    },
 
-
+    "claims": {
+      "$claimId": {
+        ".write": true,
+        ".validate": "newData.isString()
+          && newData.val().length > 0
+          && newData.val().length < 100"
+      }
+    }
+  }
+}`;
+// ================================================================
 
 const THEMES={
   warm:{name:"🍂 Warm",bg:"#fdf6ee",ac:"#c97d4e",card:"#fff",text:"#3d2b1f",sub:"#8c6a52",tag:"#f5e6d3",brd:"#e8d5c4"},
@@ -121,7 +166,6 @@ const THEMES={
   dark:{name:"🌑 Dunkel",bg:"#18181b",ac:"#f59e0b",card:"#27272a",text:"#f4f4f5",sub:"#a1a1aa",tag:"#3f3f46",brd:"#52525b"},
   candy:{name:"🍬 Candy",bg:"#fff9fe",ac:"#a855f7",card:"#fff",text:"#2e1a47",sub:"#7c3aed",tag:"#f3e8ff",brd:"#e0c8f8"}
 };
-
 
 async function doFirebaseLogin(email, pw){
   try{
@@ -134,18 +178,17 @@ async function doFirebaseLogin(email, pw){
     document.getElementById("m-err").textContent="Falsches Passwort oder E-Mail!";
   }
 }
- 
+
 let data={gifts:[],claims:{},adminPassword:"",design:{theme:"warm",headerText:"🎁 Artikelliste",headerSub:"Wähle ein Geschenk und markiere es als deins",bgUrl:""}};
 let userName="",isAdmin=false,notifTimer=null,isSaving=false;
 let db,dataRef,auth;
 
-// Admin-Session
 function restoreAdmin(){
   onAuthStateChanged(auth,(user)=>{
     isAdmin=!!user;
     render();
   });
-  }
+}
 
 function saveAdmin(){}
 function logoutAdmin(){
@@ -153,7 +196,7 @@ function logoutAdmin(){
   isAdmin=false;
   render();
 }
-// Prüfe ob Config eingetragen wurde
+
 function configOk(){return firebaseConfig.apiKey!=="DEIN_API_KEY";}
 
 async function init(){
@@ -162,7 +205,6 @@ async function init(){
   try{const app=initializeApp(firebaseConfig);auth=getAuth(app);
     db=getDatabase(app);
     dataRef=ref(db,"geschenkeliste");
-    // Echtzeit-Updates
     onValue(dataRef,(snap)=>{
       const val=snap.val();
       if(val){
@@ -193,7 +235,6 @@ async function saveData(){
   if(!dataRef){showNotif("❌ Keine Datenbankverbindung!");console.error("dataRef is null");return;}
   isSaving=true;renderSaving();
   try{
-    // Never save adminPassword to Firebase!
     const safeData={...data,adminPassword:"[protected]"};
     await set(dataRef,safeData);
     console.log("✅ Gespeichert!");
@@ -258,7 +299,6 @@ function downloadSummary(){
 }
 
 function updateCartBar(){
-  // Remove existing
   const old=document.getElementById('cart-bar');
   if(old)old.remove();
   if(!userName)return;
@@ -283,6 +323,7 @@ function updateCartBar(){
     +'</div>';
   document.body.appendChild(bar);
 }
+
 async function doRemove(id){if(!confirm("Artikel entfernen?"))return;data.gifts=data.gifts.filter(g=>g.id!==id);delete data.claims[id];await saveData();showNotif("🗑️ Entfernt");}
 
 function render(){
@@ -293,7 +334,9 @@ function render(){
   document.title=d.headerText||"Artikelliste";
 
   let adminHtml="";
-  if(isAdmin){adminHtml=`<div style="display:inline-flex;align-items:center;gap:8px;background:${t.tag};border:1.5px solid ${t.ac};color:${t.ac};border-radius:999px;padding:5px 14px;font-size:12px;font-family:sans-serif;">👑 Admin<button onclick="logoutAdmin();" style="background:transparent;border:1px solid ${t.ac};border-radius:7px;padding:2px 8px;font-size:11px;color:${t.ac};cursor:pointer;">Abmelden</button></div><button onclick="openDesign();" style="background:${t.ac};color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🎨 Design</button><button onclick="openModal('bank');" style="background:${t.text};color:${t.bg};border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🏦 Kontodaten</button><button onclick="openModal('unlock');" style="background:#e53935;color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🔓 Sperren aufheben</button>`;}
+  if(isAdmin){
+    adminHtml=`<div style="display:inline-flex;align-items:center;gap:8px;background:${t.tag};border:1.5px solid ${t.ac};color:${t.ac};border-radius:999px;padding:5px 14px;font-size:12px;font-family:sans-serif;">👑 Admin<button onclick="logoutAdmin();" style="background:transparent;border:1px solid ${t.ac};border-radius:7px;padding:2px 8px;font-size:11px;color:${t.ac};cursor:pointer;">Abmelden</button></div><button onclick="openDesign();" style="background:${t.ac};color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🎨 Design</button><button onclick="openModal('bank');" style="background:${t.text};color:${t.bg};border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🏦 Kontodaten</button><button onclick="openModal('unlock');" style="background:#e53935;color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🔓 Sperren aufheben</button><button onclick="openModal('rules');" style="background:#1a1a2e;color:#a0c4ff;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;" title="Firebase Security Rules einrichten">🔒 Security Rules</button>`;
+  }
   else{adminHtml=`<button onclick="openModal('login');" style="background:transparent;color:${t.sub};border:1px solid ${t.brd};border-radius:999px;padding:7px 16px;font-size:13px;cursor:pointer;">🔑 Als Admin anmelden</button>`;}
 
   const savedName=getSavedName();
@@ -307,15 +350,13 @@ function render(){
     nameBar=`<div class="welcome-bar" style="color:#3d2b1f;">👤 Hallo, <strong>${esc(userName)}</strong>!${switchBtn}${lockedBadge}</div>`;
   }
 
-  // Combine gifts and text blocks, sorted by order
-const allItems=[...data.gifts.map(g=>({...g,_type:'gift'})),...(data.textBlocks||[]).map(b=>({...b,_type:'text'}))].sort((a,b)=>(a.order||0)-(b.order||0));
-const cards=allItems.map(item=>{
-  if(item._type==='text'){
-    const fonts={'Georgia,serif':'Georgia','Arial,sans-serif':'Arial','Verdana,sans-serif':'Verdana','Courier New,monospace':'Courier','Palatino,serif':'Palatino'};
-    const editBtn=isAdmin?`<button class="btn-icon" onclick="openModal('text','${item.id}');" style="position:absolute;top:8px;right:36px;border:1px solid ${t.brd};">✏️</button><button class="btn-icon" onclick="doRemoveText('${item.id}');" style="position:absolute;top:8px;right:4px;border:1px solid ${t.brd};">🗑️</button>`:'';
-    return `<div class="text-block" style="background:${t.card};border:1.5px solid ${t.brd};grid-column:1/-1;${editBtn?'padding-right:80px;':''}">${editBtn}<p style="font-family:${item.fontFamily||'Georgia,serif'};font-size:${item.fontSize||'16px'};font-weight:${item.bold?'bold':'normal'};font-style:${item.italic?'italic':'normal'};color:${t.text};white-space:pre-wrap;line-height:1.6;">${esc(item.text||'')}</p></div>`;
-  }
-const g=item;
+  const allItems=[...data.gifts.map(g=>({...g,_type:'gift'})),...(data.textBlocks||[]).map(b=>({...b,_type:'text'}))].sort((a,b)=>(a.order||0)-(b.order||0));
+  const cards=allItems.map(item=>{
+    if(item._type==='text'){
+      const editBtn=isAdmin?`<button class="btn-icon" onclick="openModal('text','${item.id}');" style="position:absolute;top:8px;right:36px;border:1px solid ${t.brd};">✏️</button><button class="btn-icon" onclick="doRemoveText('${item.id}');" style="position:absolute;top:8px;right:4px;border:1px solid ${t.brd};">🗑️</button>`:'';
+      return `<div class="text-block" style="background:${t.card};border:1.5px solid ${t.brd};grid-column:1/-1;${editBtn?'padding-right:80px;':''}">${editBtn}<p style="font-family:${item.fontFamily||'Georgia,serif'};font-size:${item.fontSize||'16px'};font-weight:${item.bold?'bold':'normal'};font-style:${item.italic?'italic':'normal'};color:${t.text};white-space:pre-wrap;line-height:1.6;">${esc(item.text||'')}</p></div>`;
+    }
+    const g=item;
     const claimer=data.claims[g.id],isMine=claimer===userName,isTaken=!!claimer&&!isMine;
     const cardBgColor=isMine?t.tag:isTaken?"#f8f4f0":(g.cardBg||t.card);
     let imgHtml=g.imageUrl?`<div class="card-img" style="background:${g.imgBg||'#f5ede4'};"><img src="${esc(g.imageUrl)}" alt="${esc(g.name)}"/></div>`:`<div class="card-emoji" style="background:${g.imgBg||'#f5e6d3'};">${esc(g.emoji||"🎁")}</div>`;
@@ -329,18 +370,15 @@ const g=item;
     if(isMine&&!isLocked)acts+=`<button class="btn-outline" onclick="doUnclaim(${g.id});" style="border:1.5px solid ${t.ac};color:${t.ac};">Freigeben</button>`;
     if(isMine&&isLocked)acts+=`<span style="font-size:11px;color:${t.sub};font-family:sans-serif;">🔒 Abgeschlossen</span>`;
     if(isAdmin){acts+=`<button class="btn-icon" onclick="openModal('gift',${g.id});">✏️</button>`;acts+=`<button class="btn-icon" onclick="doRemove(${g.id});">🗑️</button>`;}
-    // Pick readable text color based on card bg brightness
-const hex=(g.cardBg||'#ffffff').replace('#','');
-const r=parseInt(hex.substr(0,2),16),gg=parseInt(hex.substr(2,2),16),b2=parseInt(hex.substr(4,2),16);
-const brightness=(r*299+gg*587+b2*114)/1000;
-const autoTextColor=brightness<128?'#ffffff':'#3d2b1f';
-const cardTextColor=g.textColor||autoTextColor;
-const cardFont=g.fontFamily||'Georgia,serif';
-return `<div class="card${isMine?" mine":isTaken?" taken":""}" style="background:${cardBgColor};font-family:${cardFont};">${imgHtml}<div class="card-body"><div class="card-name" style="color:${cardTextColor};">${esc(g.name)}</div>${g.description?`<div class="card-desc" style="color:${g.textColor?(g.textColor+'cc'):brightness<128?'rgba(255,255,255,0.8)':'#8c6a52'};">${esc(g.description)}</div>`:""}<div class="card-meta">${meta}</div></div><div class="card-footer">${status}<div class="card-actions">${acts}</div></div></div>`;
+    const hex=(g.cardBg||'#ffffff').replace('#','');
+    const r=parseInt(hex.substr(0,2),16),gg=parseInt(hex.substr(2,2),16),b2=parseInt(hex.substr(4,2),16);
+    const brightness=(r*299+gg*587+b2*114)/1000;
+    const autoTextColor=brightness<128?'#ffffff':'#3d2b1f';
+    const cardTextColor=g.textColor||autoTextColor;
+    const cardFont=g.fontFamily||'Georgia,serif';
+    return `<div class="card${isMine?" mine":isTaken?" taken":""}" style="background:${cardBgColor};font-family:${cardFont};">${imgHtml}<div class="card-body"><div class="card-name" style="color:${cardTextColor};">${esc(g.name)}</div>${g.description?`<div class="card-desc" style="color:${g.textColor?(g.textColor+'cc'):brightness<128?'rgba(255,255,255,0.8)':'#8c6a52'};">${esc(g.description)}</div>`:""}<div class="card-meta">${meta}</div></div><div class="card-footer">${status}<div class="card-actions">${acts}</div></div></div>`;
   }).join("")+(isAdmin?`<div class="add-card" onclick="openModal('gift',0);"><div style="font-size:32px;color:${t.ac};margin-bottom:6px;">+</div><div style="font-size:13px;font-style:italic;">Artikel hinzufügen</div></div><div class="add-card" onclick="openModal('text',0);" style="border-color:${t.brd};color:${t.sub};"><div style="font-size:32px;color:${t.ac};margin-bottom:6px;">T</div><div style="font-size:13px;font-style:italic;">Textblock hinzufügen</div></div>`:"");
 
-  // Render header blocks
-  // Combine text and image header blocks by order
   const allHeaderBlocks=[...(data.headerBlocks||[]).map(b=>({...b,_htype:'text'})),...(data.headerImgs||[]).map(b=>({...b,_htype:'img'}))].sort((a,b)=>(a.order||0)-(b.order||0));
   const hblocks=allHeaderBlocks.map((b)=>{
     if(b._htype==='img'){
@@ -349,13 +387,9 @@ return `<div class="card${isMine?" mine":isTaken?" taken":""}" style="background
       const h=b.imgHeight||'200px';
       const rounded=b.rounded?'12px':'4px';
       let galleryHtml='';
-      if(b.layout==='grid'){
-        galleryHtml=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(${h==='100px'?'80px':h==='200px'?'160px':'240px'},1fr));gap:8px;">${imgs.map(src=>`<img src="${esc(src)}" style="width:100%;height:${h};object-fit:cover;border-radius:${rounded};display:block;"/>`).join('')}</div>`;
-      } else if(b.layout==='single'){
-        galleryHtml=imgs.map(src=>`<img src="${esc(src)}" style="width:100%;height:auto;max-height:${h==='100px'?'200px':h==='200px'?'350px':'500px'};object-fit:contain;border-radius:${rounded};display:block;margin:0 auto 8px;"/>`).join('');
-      } else {
-        galleryHtml=`<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;">${imgs.map(src=>`<img src="${esc(src)}" style="height:${h};width:auto;flex-shrink:0;object-fit:cover;border-radius:${rounded};display:block;"/>`).join('')}</div>`;
-      }
+      if(b.layout==='grid'){galleryHtml=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(${h==='100px'?'80px':h==='200px'?'160px':'240px'},1fr));gap:8px;">${imgs.map(src=>`<img src="${esc(src)}" style="width:100%;height:${h};object-fit:cover;border-radius:${rounded};display:block;"/>`).join('')}</div>`;}
+      else if(b.layout==='single'){galleryHtml=imgs.map(src=>`<img src="${esc(src)}" style="width:100%;height:auto;max-height:${h==='100px'?'200px':h==='200px'?'350px':'500px'};object-fit:contain;border-radius:${rounded};display:block;margin:0 auto 8px;"/>`).join('');}
+      else{galleryHtml=`<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;">${imgs.map(src=>`<img src="${esc(src)}" style="height:${h};width:auto;flex-shrink:0;object-fit:cover;border-radius:${rounded};display:block;"/>`).join('')}</div>`;}
       return `<div class="hblock" style="background:${b.bgColor||'transparent'};border-radius:12px;margin-bottom:8px;padding:12px;">${editBtns}${galleryHtml}</div>`;
     }
     const editBtns=isAdmin?`<div class="hblock-edit"><button class="btn-icon" onclick="openModal('hblock','${b.id}');" style="background:white;font-size:12px;">✏️</button><button class="btn-icon" onclick="removeHBlock('${b.id}');" style="background:white;font-size:12px;">🗑️</button></div>`:'';
@@ -382,7 +416,6 @@ return `<div class="card${isMine?" mine":isTaken?" taken":""}" style="background
 
 function closeModal(){
   document.getElementById("modal-overlay")?.remove();
-  // If user is locked, remove cart bar too
   if(data.lockedUsers&&data.lockedUsers[userName]){
     document.getElementById("cart-bar")?.remove();
   }
@@ -407,36 +440,13 @@ function openConfirmModal(){
 
 async function confirmAndPay(){
   document.getElementById("confirm-overlay")?.remove();
-  // Lock this user in Firebase
   if(!data.lockedUsers)data.lockedUsers={};
   data.lockedUsers[userName]=true;
   await saveData();
   try{localStorage.setItem("gl-username-locked","true");}catch(e){}
-  // Open payment modal
   openModal("cart");
 }
 
-function renderCartBar(t){
-  if(!userName) return '';
-  const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
-  if(!myItems.length) return '';
-  const total=myItems.reduce((sum,g)=>{
-    const p=parseFloat((g.price||'').replace(/[^0-9.,]/g,'').replace(',','.'));
-    return sum+(isNaN(p)?0:p);
-  },0);
-  const itemNames=myItems.map(g=>g.name).join(', ');
-  return `<div class="cart-bar" style="background:${t.text};color:${t.bg};">
-    <div class="cart-inner">
-      <div>
-        <div class="cart-sum">💰 Gesamt: ${total>0?total.toFixed(2)+'€':'–'}</div>
-        <div class="cart-items">${myItems.length} Artikel: ${itemNames}</div>
-      </div>
-      <button onclick="openModal('cart');" style="background:${t.ac};color:white;border:none;border-radius:10px;padding:10px 18px;font-size:14px;font-family:Georgia,serif;font-weight:bold;cursor:pointer;">
-        📋 Informationen zur Überweisung
-      </button>
-    </div>
-  </div>`;
-}
 function selColor(dot,hiddenId,color){
   document.getElementById(hiddenId).value=color;
   dot.closest('.color-row').querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));
@@ -501,7 +511,6 @@ function handleHImgUpload(input){
           document.getElementById("m-hiimgs").value=JSON.stringify(newImgs);
           if(loading)loading.style.display="none";
           if(lbl)lbl.textContent=`✅ ${newImgs.length} Bild(er) ausgewählt`;
-          // Update preview
           const prev=document.getElementById("m-hiprev");
           if(prev)prev.innerHTML=newImgs.map((src,i)=>`<div style="position:relative;display:inline-block;margin:4px;"><img src="${src}" style="height:80px;width:auto;object-fit:cover;border-radius:6px;border:1px solid #ddd;"/><button onclick="removeHImgItem(${i});" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">✕</button></div>`).join('');
         }
@@ -535,7 +544,6 @@ function selSize(btn,id,size){
   const targetId=id||"m-tsize";
   const el=document.getElementById(targetId);
   if(el)el.value=size;
-  // Only deactivate buttons in same container
   const container=btn.closest("div");
   if(container)container.querySelectorAll(".font-btn").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
@@ -552,10 +560,77 @@ async function doSaveText(){
   closeModal();await saveData();
 }
 async function doRemoveText(id){if(!confirm("Textblock entfernen?"))return;data.textBlocks=(data.textBlocks||[]).filter(b=>b.id!==id);await saveData();showNotif("🗑️ Entfernt");}
+
 function openModal(type,giftId){
   const t=THEMES[data.design.theme]||THEMES.warm;
   let body="";
-  if(type==="cart"){
+
+  // ===== 🔒 SECURITY RULES MODAL =====
+  if(type==="rules"){
+    const escapedRules=esc(RECOMMENDED_RULES);
+    body=`<h2 style="color:#222;">🔒 Firebase Security Rules</h2>
+      <p style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;font-family:sans-serif;">
+        Diese Rules schützen deine Datenbank: Nur eingeloggte Admins können Artikel, Design und Kontodaten ändern. 
+        Reservierungen bleiben für alle offen, aber mit Validierung.
+      </p>
+
+      <div style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:10px;padding:12px;margin-bottom:16px;font-size:13px;font-family:sans-serif;color:#856404;">
+        ⚠️ <strong>Aktuell läuft deine DB im Testmodus</strong> — jeder kann alles lesen und schreiben! 
+        Bitte die Rules unten sofort einrichten.
+      </div>
+
+      <div class="rules-step">
+        <div class="rules-step-num" style="background:#c97d4e;">1</div>
+        <div style="font-size:13px;font-family:sans-serif;color:#333;">
+          Öffne <a href="https://console.firebase.google.com" target="_blank" style="color:#3a6fd8;font-weight:bold;">console.firebase.google.com</a>
+          → dein Projekt → <strong>Realtime Database</strong> → Reiter <strong>„Regeln"</strong>
+        </div>
+      </div>
+
+      <div class="rules-step">
+        <div class="rules-step-num" style="background:#c97d4e;">2</div>
+        <div style="font-size:13px;font-family:sans-serif;color:#333;">
+          Den <strong>gesamten Inhalt</strong> im Editor löschen und durch die Rules unten ersetzen.
+        </div>
+      </div>
+
+      <div class="rules-step">
+        <div class="rules-step-num" style="background:#c97d4e;">3</div>
+        <div style="font-size:13px;font-family:sans-serif;color:#333;">
+          Auf <strong>„Veröffentlichen"</strong> klicken — fertig! ✅
+        </div>
+      </div>
+
+      <label style="margin-top:4px;">Rules zum Kopieren</label>
+      <pre class="rules-code" id="rules-code-block">${escapedRules}</pre>
+
+      <div style="display:flex;gap:10px;margin-bottom:16px;">
+        <button onclick="
+          navigator.clipboard.writeText(document.getElementById('rules-code-block').innerText)
+            .then(()=>showNotif('✅ Rules kopiert! Jetzt in Firebase einfügen.'))
+            .catch(()=>showNotif('Bitte manuell markieren und kopieren'));
+        " style="flex:1;padding:10px;border-radius:10px;border:none;background:#1a1a2e;color:#a0c4ff;font-family:Georgia,serif;font-weight:bold;cursor:pointer;font-size:14px;">
+          📋 Rules kopieren
+        </button>
+        <a href="https://console.firebase.google.com" target="_blank" style="flex:1;padding:10px;border-radius:10px;border:none;background:#c97d4e;color:white;font-family:Georgia,serif;font-weight:bold;cursor:pointer;font-size:14px;text-decoration:none;display:flex;align-items:center;justify-content:center;">
+          🔗 Firebase öffnen
+        </a>
+      </div>
+
+      <div style="background:#f0f8f0;border:1.5px solid #c0ddc8;border-radius:10px;padding:12px;font-size:12px;font-family:sans-serif;color:#1a3324;line-height:1.7;">
+        <strong>Was diese Rules bewirken:</strong><br>
+        ✅ Jeder kann <em>lesen</em> (Artikel ansehen)<br>
+        🔒 Nur Admin kann Artikel, Design, Kontodaten <em>ändern</em><br>
+        📝 Reservierungen (<em>claims</em>) bleiben für alle schreibbar — aber max. 100 Zeichen<br>
+        🛡️ Gesperrte Nutzer und Passwort: nur Admin
+      </div>
+
+      <div class="modal-btns" style="margin-top:16px;">
+        <button class="btn-cancel" onclick="closeModal();">Schließen</button>
+      </div>`;
+  }
+  // ===== CART MODAL =====
+  else if(type==="cart"){
     const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
     const total=myItems.reduce((sum,g)=>{
       const p=parseFloat((g.price||'').replace(/[^0-9.,]/g,'').replace(',','.'));
@@ -581,8 +656,6 @@ function openModal(type,giftId){
           +'<div style="font-weight:bold;font-family:monospace;color:#222;font-size:13px;word-break:break-all;margin-bottom:6px;">'+esc(b.iban)+'</div>'
           +'<button onclick="navigator.clipboard.writeText(this.dataset.iban);showNotif(\'IBAN kopiert!\');" data-iban="'+esc(b.iban)+'" style="background:#3a6fd8;color:white;border:none;border-radius:6px;padding:6px;font-size:12px;cursor:pointer;width:100%;text-align:center;">📋 IBAN kopieren</button>'
           +'</div>';
-
-
         if(b.purpose)bankHtml+='<div style="display:flex;justify-content:space-between;"><span style="color:#555;font-size:12px;font-family:sans-serif;">Verwendungszweck</span><span style="font-weight:bold;color:#222;">'+esc(b.purpose)+'</span></div>';
         bankHtml+='</div>';
       }
@@ -613,7 +686,6 @@ function openModal(type,giftId){
   }
   else if(type==="unlock"){
     const locked=Object.keys(data.lockedUsers||{});
-    // Store locked users globally for unlock buttons
     window._lockedList=locked;
     const rows=locked.length
       ?locked.map((name,idx)=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;">'
@@ -652,7 +724,7 @@ function openModal(type,giftId){
         <button class="btn-save" style="background:${t.ac};" onclick="doSaveBank();">Speichern</button>
       </div>`;
   }
- else if(type==="login"){body=`<h2>🔑 Admin-Anmeldung</h2><label>E-Mail</label><input type="email" id="m-email" placeholder="deine@email.de" style="margin-bottom:8px;"/><label>Passwort</label><input type="password" id="m-pw" placeholder="Passwort..." onkeydown="if(event.key==='Enter')doLogin();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doLogin();">Anmelden</button></div>`;}
+  else if(type==="login"){body=`<h2>🔑 Admin-Anmeldung</h2><label>E-Mail</label><input type="email" id="m-email" placeholder="deine@email.de" style="margin-bottom:8px;"/><label>Passwort</label><input type="password" id="m-pw" placeholder="Passwort..." onkeydown="if(event.key==='Enter')doLogin();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doLogin();">Anmelden</button></div>`;}
   else if(type==="setpw"){body=`<h2>🔐 Admin-Passwort</h2><label>Neues Passwort (min. 4 Zeichen)</label><input type="password" id="m-pw1" placeholder="Passwort..."/><label>Wiederholen</label><input type="password" id="m-pw2" placeholder="Wiederholen..." onkeydown="if(event.key==='Enter')doSetPw();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doSetPw();">Festlegen</button></div>`;}
   else if(type==="text"){
     const b=giftId?((data.textBlocks||[]).find(x=>x.id===giftId)):null;
@@ -826,7 +898,7 @@ function openModal(type,giftId){
   wrap.onclick=e=>{if(e.target===wrap)closeModal();};
   wrap.innerHTML=`<div class="modal">${body}</div>`;
   document.body.appendChild(wrap);
-  setTimeout(()=>wrap.querySelector("input")?.focus(),40);
+  setTimeout(()=>wrap.querySelector("input,button")?.focus(),40);
   wrap.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
 }
 
@@ -914,11 +986,20 @@ function renderSetup(){
           <div style="font-size:13px;color:#888;">Zahnrad oben links → <strong>„Projekteinstellungen"</strong> → ganz unten: <strong>„App hinzufügen" → „Web" (&lt;/&gt;)</strong> → App-Nickname eingeben → Registrieren</div>
         </div>
       </div>
-      <div style="display:flex;gap:16px;margin-bottom:0;">
+      <div style="display:flex;gap:16px;margin-bottom:20px;">
         <div style="width:32px;height:32px;border-radius:50%;background:#c97d4e;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">5</div>
         <div>
           <div style="font-size:15px;margin-bottom:4px;">Config in die HTML-Datei eintragen</div>
           <div style="font-size:13px;color:#888;">Du siehst einen Code-Block mit <strong>firebaseConfig</strong> → diese Werte in die HTML-Datei bei <strong>„DEIN_API_KEY"</strong> usw. eintragen → Datei speichern → auf Netlify hochladen</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:0;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#e53935;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">6</div>
+        <div>
+          <div style="font-size:15px;margin-bottom:4px;">🔒 Security Rules einrichten <strong style="color:#e53935;">(wichtig!)</strong></div>
+          <div style="font-size:13px;color:#888;">
+            Firebase Console → Realtime Database → Reiter <strong>„Regeln"</strong> → Inhalt ersetzen durch die Rules im Admin-Panel (nach dem Login auf <strong>🔒 Security Rules</strong> klicken) → <strong>„Veröffentlichen"</strong>
+          </div>
         </div>
       </div>
     </div>
@@ -928,10 +1009,8 @@ function renderSetup(){
   </div>`;
 }
 
-// Globale Funktionen zugänglich machen
-// Call updateCartBar after render completes
 setTimeout(updateCartBar, 100);
-window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.openConfirmModal=openConfirmModal;window.confirmAndPay=confirmAndPay;window.downloadSummary=downloadSummary;window.doSaveBank=doSaveBank;window.unlockUser=unlockUser;window.renderCartBar=renderCartBar;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.removeHImgItem=removeHImgItem;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
+window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.openConfirmModal=openConfirmModal;window.confirmAndPay=confirmAndPay;window.downloadSummary=downloadSummary;window.doSaveBank=doSaveBank;window.unlockUser=unlockUser;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.removeHImgItem=removeHImgItem;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
 window.openModal=openModal;window.closeModal=closeModal;window.doLogin=doLogin;window.doSetPw=doSetPw;
 window.doSaveGift=doSaveGift;window.handleUpload=handleUpload;window.clearUpload=clearUpload;
 window.openDesign=openDesign;window.selTheme=selTheme;window.applyDesign=applyDesign;
