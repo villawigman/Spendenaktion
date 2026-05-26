@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/><meta property="og:title" content="Spendenliste"/>
+<meta property="og:description" content=""/>
+<meta property="og:site_name" content=""/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Spendenliste villa\wigman</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;min-height:100vh;background:#fdf6ee;color:#3d2b1f}
+.page{padding:24px 16px 80px;max-width:1000px;margin:0 auto}
+#notif{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:999px;font-size:14px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.25);white-space:nowrap;opacity:0;transition:opacity .3s;pointer-events:none;background:#3d2b1f;color:#fdf6ee}
+.header{text-align:center;margin-bottom:28px}
+.pill{display:inline-block;font-size:11px;letter-spacing:.15em;text-transform:uppercase;padding:4px 14px;border-radius:999px;margin-bottom:12px;font-family:sans-serif;color:white;background:#c97d4e}
+h1{font-size:clamp(24px,6vw,44px);font-weight:normal;margin-bottom:8px}
+.subtitle{font-size:14px;font-style:italic;margin-bottom:10px;color:#8c6a52}
+.stats{font-size:13px;font-family:sans-serif;margin-bottom:14px;color:#8c6a52}
+.btn-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+button{cursor:pointer;font-family:Georgia,serif;border:none}
+.name-card{border-radius:16px;padding:20px 24px;max-width:440px;margin:0 auto 24px;box-shadow:0 4px 20px rgba(0,0,0,.08);background:white;border:1.5px solid #e8d5c4}
+.name-card p{font-size:16px;text-align:center;margin-bottom:12px}
+.input-row{display:flex;gap:8px}
+input{width:100%;padding:10px 14px;border-radius:10px;font-size:14px;font-family:Georgia,serif;outline:none;background:#fdf6ee;border:1.5px solid #e0c9b5;color:#333;margin-bottom:12px}
+.welcome-bar{display:flex;justify-content:center;align-items:center;gap:12px;border-radius:12px;padding:10px 20px;max-width:360px;margin:0 auto 24px;font-size:14px;background:white;border:1px solid #e8d5c4}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.card{border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 2px 12px rgba(0,0,0,.07);background:white;border:1.5px solid #e8d5c4}
+.card.mine{border:2px solid #c97d4e;background:#fff8f2;box-shadow:0 4px 20px rgba(201,125,78,.18)}
+.card.taken{opacity:.65;background:#f8f4f0}
+.card-img{width:100%;background:#f5ede4;display:flex;align-items:center;justify-content:center;padding:12px}
+.card-img img{width:100%;height:auto;max-height:220px;object-fit:contain;display:block;border-radius:6px}
+.card-emoji{width:100%;height:100px;display:flex;align-items:center;justify-content:center;font-size:44px;background:#f5e6d3}
+.card-body{flex:1;padding:14px 16px 8px}
+.card-name{font-size:17px;font-weight:normal;margin-bottom:5px;color:#3d2b1f}
+.card-desc{font-size:12px;font-style:italic;line-height:1.4;margin-bottom:8px;color:#8c6a52}
+.card-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.price-tag{font-size:11px;padding:3px 10px;border-radius:999px;font-family:sans-serif;background:#000000;color:#ffffff}
+.product-link{font-size:11px;padding:3px 10px;border-radius:999px;color:#5b7ec9;background:#eef2fb;text-decoration:none;font-family:sans-serif}
+.card-footer{padding:10px 16px 14px}
+.card-status{font-size:12px;margin-bottom:8px}
+.card-actions{display:flex;gap:6px}
+.btn-accent{color:white;border-radius:9px;padding:8px 14px;font-size:12px;flex:1;border:none;cursor:pointer}
+.btn-outline{background:transparent;border-radius:9px;padding:8px 14px;font-size:12px;flex:1;cursor:pointer}
+.btn-icon{padding:7px 9px;border-radius:8px;font-size:13px;background:transparent;border:1px solid #e8d5c4;cursor:pointer}
+.add-card{border-radius:16px;min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:2px dashed #e8d5c4;color:#8c6a52}
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9000;padding:16px;backdrop-filter:blur(4px);background:rgba(0,0,0,.45)}
+.modal{background:white;border-radius:20px;padding:24px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal h2{font-size:20px;font-weight:normal;margin-bottom:16px;color:#222}
+.modal label{display:block;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-family:sans-serif}
+.modal-btns{display:flex;gap:10px;margin-top:10px}
+.btn-save{flex:1;padding:10px;border-radius:10px;border:none;color:white;font-family:Georgia,serif;font-weight:bold;cursor:pointer;font-size:14px}
+.btn-cancel{flex:1;padding:10px;border-radius:10px;border:1.5px solid #e0c9b5;background:transparent;color:#888;font-family:Georgia,serif;cursor:pointer}
+.err{color:#c0392b;font-size:12px;margin:-6px 0 10px;font-family:sans-serif}
+.upload-box{border:2px dashed #e0c9b5;border-radius:10px;padding:14px;margin-bottom:12px;text-align:center;cursor:pointer;background:#fdf6ee}
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 18px}
+.swatch{border-radius:10px;overflow:hidden;cursor:pointer;border:2px solid #eee}
+.swatch.active{border-width:2.5px}
+.swatch-inner{padding:10px 8px 8px;text-align:center}
+.swatch-dot{width:26px;height:26px;border-radius:50%;margin:0 auto 4px}
+.swatch-name{font-size:11px;font-family:sans-serif}
+.text-block{padding:16px;border-radius:12px;margin-bottom:4px;position:relative}
+.font-btn{padding:5px 10px;border-radius:7px;border:1.5px solid #e0c9b5;background:#fdf6ee;cursor:pointer;font-family:Georgia,serif;margin:2px}
+.font-btn.active{background:#c97d4e;color:white;border-color:#c97d4e}
+select{width:100%;padding:9px 13px;border-radius:10px;font-size:14px;font-family:Georgia,serif;outline:none;background:#fdf6ee;border:1.5px solid #e0c9b5;color:#333;margin-bottom:12px;cursor:pointer}
+textarea{width:100%;padding:10px 14px;border-radius:10px;font-size:14px;font-family:Georgia,serif;outline:none;background:#fdf6ee;border:1.5px solid #e0c9b5;color:#333;margin-bottom:12px;resize:vertical;min-height:80px}
+.saving{display:inline-block;font-size:11px;padding:2px 12px;border-radius:999px;background:#f5e6d3;color:#c97d4e;font-family:sans-serif;margin-bottom:8px}
+.hblock{padding:16px 24px;text-align:center;position:relative}
+.hblock-edit{position:absolute;top:6px;right:6px;display:flex;gap:4px;opacity:0;transition:opacity .2s}
+.hblock:hover .hblock-edit{opacity:1}
+.color-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.color-dot{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0}
+.color-dot.active{border-color:#333}
+.color-input{width:36px;height:36px;border:none;padding:0;cursor:pointer;border-radius:8px;background:none}
+footer{text-align:center;margin-top:48px;font-size:11px;font-family:sans-serif;opacity:.4}
+.cart-bar{position:fixed;bottom:0;left:0;right:0;z-index:8000;padding:12px 16px;font-family:Georgia,serif;box-shadow:0 -4px 20px rgba(0,0,0,.15)}
+.cart-inner{max-width:700px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.cart-sum{font-size:18px;font-weight:bold}
+.cart-items{font-size:12px;opacity:.8;font-family:sans-serif}
+.bank-box{background:#f0f6ff;border:1.5px solid #c0d4f0;border-radius:12px;padding:16px;margin-bottom:16px}
+.bank-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px}
+.bank-label{color:#888;font-family:sans-serif;font-size:12px}
+.bank-value{font-weight:bold;font-family:monospace;font-size:14px}
+.copy-btn{background:#3a6fd8;color:white;border:none;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:sans-serif}
+.rules-code{background:#1e1e2e;color:#cdd6f4;border-radius:10px;padding:14px;font-family:monospace;font-size:12px;line-height:1.6;white-space:pre;overflow-x:auto;margin-bottom:12px;border:1px solid #313244}
+.rules-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px;padding:12px;border-radius:10px;background:#f8f4f0;border:1px solid #e8d5c4}
+.rules-step-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:13px;flex-shrink:0;font-family:sans-serif;color:white}
+.rules-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-family:sans-serif;padding:4px 12px;border-radius:999px;margin-bottom:12px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// ================================================================
+// ⚙️ DEINE FIREBASE-KONFIGURATION — hier eintragen!
+// ================================================================
+const firebaseConfig = {
+  apiKey:            "AIzaSyAbv-K6HH9V8JVGc6q2kbz2kEqlNQoJXJY",
+  authDomain:        "spendenaktion-8fb9b.firebaseapp.com",
+  databaseURL:       "https://spendenaktion-8fb9b-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "spendenaktion-8fb9b",
+  storageBucket:     "spendenaktion-8fb9b.firebasestorage.app",
+  messagingSenderId: "987845431856",
+  appId:             "1:987845431856:web:f2ab90ede5f9781c8193f5"
+};
+// ================================================================
+
+// ================================================================
+// 🔒 EMPFOHLENE FIREBASE SECURITY RULES
+// Diese Rules in die Firebase Console unter
+// Realtime Database → Regeln einfügen und veröffentlichen!
+// ================================================================
+const RECOMMENDED_RULES = `{
+  "rules": {
+    ".read": true,
+
+    "gifts": {
+      ".write": "auth != null"
+    },
+    "design": {
+      ".write": "auth != null"
+    },
+    "headerBlocks": {
+      ".write": "auth != null"
+    },
+    "headerImgs": {
+      ".write": "auth != null"
+    },
+    "textBlocks": {
+      ".write": "auth != null"
+    },
+    "bankAccount": {
+      ".write": "auth != null"
+    },
+    "lockedUsers": {
+      ".write": "auth != null"
+    },
+    "adminPassword": {
+      ".write": "auth != null"
+    },
+
+    "claims": {
+      "$claimId": {
+        ".write": true,
+        ".validate": "newData.isString()
+          && newData.val().length > 0
+          && newData.val().length < 100"
+      }
+    }
+  }
+}`;
+// ================================================================
+
+const THEMES={
+  warm:{name:"🍂 Warm",bg:"#fdf6ee",ac:"#c97d4e",card:"#fff",text:"#3d2b1f",sub:"#8c6a52",tag:"#f5e6d3",brd:"#e8d5c4"},
+  rose:{name:"🌸 Rosa",bg:"#fff5f7",ac:"#e05c8a",card:"#fff",text:"#3d1a24",sub:"#b06080",tag:"#fce4ec",brd:"#f0c8d8"},
+  sage:{name:"🌿 Grün",bg:"#f3f8f4",ac:"#4a8c5c",card:"#fff",text:"#1a3324",sub:"#567a60",tag:"#d8eedf",brd:"#c0ddc8"},
+  sky:{name:"🩵 Blau",bg:"#f0f6ff",ac:"#3a6fd8",card:"#fff",text:"#0d1f40",sub:"#4a6090",tag:"#dce8fa",brd:"#c0d4f0"},
+  dark:{name:"🌑 Dunkel",bg:"#18181b",ac:"#f59e0b",card:"#27272a",text:"#f4f4f5",sub:"#a1a1aa",tag:"#3f3f46",brd:"#52525b"},
+  candy:{name:"🍬 Candy",bg:"#fff9fe",ac:"#a855f7",card:"#fff",text:"#2e1a47",sub:"#7c3aed",tag:"#f3e8ff",brd:"#e0c8f8"}
+};
+
+async function doFirebaseLogin(email, pw){
+  try{
+    await signInWithEmailAndPassword(auth, email, pw);
+    isAdmin=true;
+    closeModal();
+    render();
+    showNotif("👑 Willkommen, Admin!");
+  }catch(e){
+    document.getElementById("m-err").textContent="Falsches Passwort oder E-Mail!";
+  }
+}
+
+let data={gifts:[],claims:{},adminPassword:"",design:{theme:"warm",headerText:"🎁 Artikelliste",headerSub:"Wähle ein Geschenk und markiere es als deins",bgUrl:""}};
+let userName="",isAdmin=false,notifTimer=null,isSaving=false;
+let db,dataRef,auth;
+
+function restoreAdmin(){
+  onAuthStateChanged(auth,(user)=>{
+    isAdmin=!!user;
+    render();
+  });
+}
+
+function saveAdmin(){}
+function logoutAdmin(){
+  signOut(auth);
+  isAdmin=false;
+  render();
+}
+
+function configOk(){return firebaseConfig.apiKey!=="DEIN_API_KEY";}
+
+async function init(){
+  if(!configOk()){renderSetup();return;}
+  showLoader();
+  try{const app=initializeApp(firebaseConfig);auth=getAuth(app);
+    db=getDatabase(app);
+    dataRef=ref(db,"geschenkeliste");
+    onValue(dataRef,(snap)=>{
+      const val=snap.val();
+      if(val){
+        data.gifts=val.gifts||[];
+        data.claims=val.claims||{};
+        data.adminPassword=val.adminPassword||"";
+        data.design={...data.design,...(val.design||{})};
+        data.headerBlocks=val.headerBlocks||[];
+        data.headerImgs=val.headerImgs||[];
+        data.textBlocks=val.textBlocks||[];
+        data.bankAccount=val.bankAccount||{};
+        data.lockedUsers=val.lockedUsers||{};
+      }
+      restoreAdmin();
+      render();
+      setTimeout(function(){updateCartBar();}, 50);
+      console.log("✅ Firebase verbunden!");
+    },(error)=>{
+      console.error("Firebase Fehler:",error);
+      showNotif("❌ Verbindungsfehler: "+error.message);
+    });
+  }catch(e){
+    document.getElementById("root").innerHTML=`<div style="text-align:center;padding:60px 20px;font-family:sans-serif;"><div style="font-size:36px;margin-bottom:12px;">⚠️</div><p style="color:#c0392b;font-size:16px;margin-bottom:6px;">Verbindungsfehler</p><p style="color:#888;font-size:13px;">${e.message}</p></div>`;
+  }
+}
+
+async function saveData(){
+  if(!dataRef){showNotif("❌ Keine Datenbankverbindung!");console.error("dataRef is null");return;}
+  isSaving=true;renderSaving();
+  try{
+    const safeData={...data,adminPassword:"[protected]"};
+    await set(dataRef,safeData);
+    console.log("✅ Gespeichert!");
+  }catch(e){
+    console.error("Speicherfehler:",e);
+    showNotif("❌ Speicherfehler: "+e.message);
+  }
+  isSaving=false;renderSaving();
+}
+
+function renderSaving(){const el=document.getElementById("saving-badge");if(el)el.style.display=isSaving?"inline-block":"none";}
+function showNotif(msg){const el=document.getElementById("notif");if(!el)return;const t=THEMES[data.design.theme]||THEMES.warm;el.style.background=t.text;el.style.color=t.bg;el.textContent=msg;el.style.opacity="1";clearTimeout(notifTimer);notifTimer=setTimeout(()=>{el.style.opacity="0";},2500);}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function showLoader(){document.getElementById("root").innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:14px;"><div style="width:44px;height:44px;border:3px solid #f0d9c8;border-top:3px solid #c97d4e;border-radius:50%;animation:spin .8s linear infinite;"></div><p style="font-family:Georgia,serif;color:#c97d4e;">Verbinde mit Datenbank...</p></div>`;}
+function doSetName(){const v=(document.getElementById("nameInp")?.value||"").trim();if(v){userName=v;try{localStorage.setItem("gl-username",v);}catch(e){}render();setTimeout(updateCartBar,200);}}
+function getSavedName(){try{return localStorage.getItem("gl-username")||"";}catch(e){return "";}}
+
+async function doClaim(id){
+  if(!userName){showNotif("Bitte gib deinen Namen ein!");return;}
+  if(data.lockedUsers&&data.lockedUsers[userName]){showNotif("❌ Deine Auswahl ist bereits abgeschlossen!");return;}
+  data.claims[id]=userName;await saveData();showNotif("🎉 Reserviert!");updateCartBar();
+}
+async function doUnclaim(id){
+  if(data.lockedUsers&&data.lockedUsers[userName]){showNotif("❌ Deine Auswahl ist bereits abgeschlossen!");return;}
+  delete data.claims[id];await saveData();showNotif("↩️ Freigegeben");updateCartBar();
+}
+
+function downloadSummary(){
+  const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
+  const total=myItems.reduce((sum,g)=>{const p=parseFloat((g.price||"").replace(/[^0-9.,]/g,"").replace(",","."));return sum+(isNaN(p)?0:p);},0);
+  const b=data.bankAccount||{};
+  const date=new Date().toLocaleDateString("de-DE");
+  const itemRows=myItems.map(g=>'<tr><td style="padding:10px;border-bottom:1px solid #eee;">'+g.name+'</td><td style="padding:10px;border-bottom:1px solid #eee;text-align:right;font-weight:bold;">'+(g.price||'–')+'</td></tr>').join('');
+  const bankInfo=b.iban?'<div style="background:#f0f6ff;border-radius:8px;padding:16px;margin-top:20px;"><p style="font-weight:bold;margin-bottom:8px;">Zahlungsinformationen:</p>'
+    +(b.name?'<p>Empfänger: <strong>'+b.name+'</strong></p>':'')
+    +'<p>IBAN: <strong>'+b.iban+'</strong></p>'
+    +(b.bic?'<p>BIC: <strong>'+b.bic+'</strong></p>':'')
+    +(b.purpose?'<p>Verwendungszweck: <strong>'+b.purpose+'</strong></p>':'')
+    +'</div>':'';
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Bestellung '+userName+'</title>'
+    +'<style>body{font-family:Georgia,serif;max-width:600px;margin:40px auto;padding:20px;color:#222;}'
+    +'h1{color:#c97d4e;border-bottom:2px solid #c97d4e;padding-bottom:8px;}'
+    +'table{width:100%;border-collapse:collapse;margin:16px 0;}'
+    +'.total{font-size:18px;font-weight:bold;text-align:right;color:#c97d4e;padding:12px 0;border-top:2px solid #222;}'
+    +'@media print{body{margin:0;}}'
+    +'</style></head><body>'
+    +'<h1>Bestellübersicht</h1>'
+    +'<p><strong>Name:</strong> '+userName+'</p>'
+    +'<p><strong>Datum:</strong> '+date+'</p>'
+    +'<table>'+itemRows+'</table>'
+    +'<div class="total">Gesamt: '+(total>0?total.toFixed(2)+' €':'nicht berechnet')+'</div>'
+    +bankInfo
+    +'<p style="margin-top:30px;font-size:12px;color:#888;">Vielen Dank für deine Spende! Villa Wigman für Tanz e.V.</p>'
+    +'<p style="font-size:12px;color:#888;margin-top:40px;border-top:1px solid #eee;padding-top:8px;">Zum Speichern als PDF: Datei → Drucken → Als PDF speichern</p>'
+    +'</body></html>';
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Auswahl_'+userName+'_'+new Date().toLocaleDateString('de-DE').replace(/\./g,'-')+'.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function updateCartBar(){
+  const old=document.getElementById('cart-bar');
+  if(old)old.remove();
+  if(!userName)return;
+  const t=THEMES[data.design.theme]||THEMES.warm;
+  const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
+  if(!myItems.length)return;
+  const total=myItems.reduce((sum,g)=>{
+    const raw=(g.price||'').replace(/[^0-9.,]/g,'').replace(',','.');
+    const p=parseFloat(raw);
+    return sum+(isNaN(p)?0:p);
+  },0);
+  const bar=document.createElement('div');
+  bar.id='cart-bar';
+  bar.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:8000;padding:14px 16px;box-shadow:0 -4px 20px rgba(0,0,0,.4);background:'+t.text+';color:'+t.bg+';font-family:Georgia,serif;';
+  bar.innerHTML=
+    '<div style="max-width:700px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">'
+    +'<div>'
+    +'<div style="font-size:20px;font-weight:bold;">💰 Gesamt: '+(total>0?total.toFixed(2)+' €':'Preise nicht angegeben')+'</div>'
+    +'<div style="font-size:12px;opacity:.75;margin-top:2px;">'+myItems.length+' Artikel reserviert'+'</div>'
+    +'</div>'
+    +'<button onclick="openConfirmModal();" style="background:'+t.ac+';color:white;border:none;border-radius:10px;padding:11px 20px;font-size:15px;font-family:Georgia,serif;font-weight:bold;cursor:pointer;">Informationen zur Überweisung</button>'
+    +'</div>';
+  document.body.appendChild(bar);
+}
+
+async function doRemove(id){if(!confirm("Artikel entfernen?"))return;data.gifts=data.gifts.filter(g=>g.id!==id);delete data.claims[id];await saveData();showNotif("🗑️ Entfernt");}
+
+function render(){
+  const t=THEMES[data.design.theme]||THEMES.warm,d=data.design;
+  const claimed=Object.keys(data.claims).length;
+  document.body.style.background=d.bgUrl?`url(${d.bgUrl}) center/cover fixed`:t.bg;
+  document.body.style.color=t.text;
+  document.title=d.headerText||"Artikelliste";
+
+  let adminHtml="";
+  if(isAdmin){
+    adminHtml=`<div style="display:inline-flex;align-items:center;gap:8px;background:${t.tag};border:1.5px solid ${t.ac};color:${t.ac};border-radius:999px;padding:5px 14px;font-size:12px;font-family:sans-serif;">👑 Admin<button onclick="logoutAdmin();" style="background:transparent;border:1px solid ${t.ac};border-radius:7px;padding:2px 8px;font-size:11px;color:${t.ac};cursor:pointer;">Abmelden</button></div><button onclick="openDesign();" style="background:${t.ac};color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🎨 Design</button><button onclick="openModal('bank');" style="background:${t.text};color:${t.bg};border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🏦 Kontodaten</button><button onclick="openModal('unlock');" style="background:#e53935;color:white;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;">🔓 Sperren aufheben</button><button onclick="openModal('rules');" style="background:#1a1a2e;color:#a0c4ff;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border:none;" title="Firebase Security Rules einrichten">🔒 Security Rules</button>`;
+  }
+  else{adminHtml=`<button onclick="openModal('login');" style="background:transparent;color:${t.sub};border:1px solid ${t.brd};border-radius:999px;padding:7px 16px;font-size:13px;cursor:pointer;">🔑 Als Admin anmelden</button>`;}
+
+  const savedName=getSavedName();
+  const isLocked2=!!(data.lockedUsers&&data.lockedUsers[userName]);
+  let nameBar="";
+  if(!userName){
+    nameBar=`<div class="name-card" style="background:white;border:2px solid ${t.ac};"><p style="color:#222;font-size:17px;font-weight:bold;margin-bottom:12px;">Wie heißt du? 👋</p><div class="input-row"><input id="nameInp" placeholder="Dein Name..." style="margin-bottom:0;color:#222;background:#ffffff;border:2px solid ${t.ac};font-size:16px;font-weight:bold;" onkeydown="if(event.key==='Enter')doSetName();"/><button onclick="doSetName();" style="background:${t.ac};color:white;white-space:nowrap;padding:9px 18px;border-radius:10px;font-weight:bold;font-size:14px;border:none;">Los!</button></div></div>`;
+  } else {
+    const switchBtn=(!savedName&&!isLocked2)?`<button onclick="userName='';render();" style="background:transparent;border:1px solid ${t.brd};border-radius:7px;padding:3px 10px;font-size:11px;color:${t.sub};cursor:pointer;">Wechseln</button>`:"";
+    const lockedBadge=isLocked2?`<span style="font-size:11px;color:#c97d4e;font-family:sans-serif;margin-left:6px;">🔒 Gesperrt</span>`:"";
+    nameBar=`<div class="welcome-bar" style="color:#3d2b1f;">👤 Hallo, <strong>${esc(userName)}</strong>!${switchBtn}${lockedBadge}</div>`;
+  }
+
+  const allItems=[...data.gifts.map(g=>({...g,_type:'gift'})),...(data.textBlocks||[]).map(b=>({...b,_type:'text'}))].sort((a,b)=>(a.order||0)-(b.order||0));
+  const cards=allItems.map(item=>{
+    if(item._type==='text'){
+      const editBtn=isAdmin?`<button class="btn-icon" onclick="openModal('text','${item.id}');" style="position:absolute;top:8px;right:36px;border:1px solid ${t.brd};">✏️</button><button class="btn-icon" onclick="doRemoveText('${item.id}');" style="position:absolute;top:8px;right:4px;border:1px solid ${t.brd};">🗑️</button>`:'';
+      return `<div class="text-block" style="background:${t.card};border:1.5px solid ${t.brd};grid-column:1/-1;${editBtn?'padding-right:80px;':''}">${editBtn}<p style="font-family:${item.fontFamily||'Georgia,serif'};font-size:${item.fontSize||'16px'};font-weight:${item.bold?'bold':'normal'};font-style:${item.italic?'italic':'normal'};color:${t.text};white-space:pre-wrap;line-height:1.6;">${esc(item.text||'')}</p></div>`;
+    }
+    const g=item;
+    const claimer=data.claims[g.id],isMine=claimer===userName,isTaken=!!claimer&&!isMine;
+    const cardBgColor=isMine?t.tag:isTaken?"#f8f4f0":(g.cardBg||t.card);
+    let imgHtml=g.imageUrl?`<div class="card-img" style="background:${g.imgBg||'#f5ede4'};"><img src="${esc(g.imageUrl)}" alt="${esc(g.name)}"/></div>`:`<div class="card-emoji" style="background:${g.imgBg||'#f5e6d3'};">${esc(g.emoji||"🎁")}</div>`;
+    let meta="";
+    if(g.price)meta+=`<span class="price-tag">${esc(g.price)}</span>`;
+    if(g.productUrl)meta+=`<a class="product-link" href="${esc(g.productUrl)}" target="_blank">🔗 Zum Produkt</a>`;
+    let status=isMine?`<div class="card-status" style="color:${t.ac};font-weight:bold;">✅ Du spendest das!</div>`:isTaken?`<div class="card-status" style="color:${t.sub};">🔒 ${esc(claimer)} spendet das</div>`:`<div class="card-status" style="color:#222;">✨ Noch frei</div>`;
+    let acts="";
+    const isLocked=!!(data.lockedUsers&&data.lockedUsers[userName]);
+    if(!claimer&&userName&&!isLocked)acts+=`<button class="btn-accent" onclick="doClaim(${g.id});" style="background:${t.ac};">Ich spende das!</button>`;
+    if(isMine&&!isLocked)acts+=`<button class="btn-outline" onclick="doUnclaim(${g.id});" style="border:1.5px solid ${t.ac};color:${t.ac};">Freigeben</button>`;
+    if(isMine&&isLocked)acts+=`<span style="font-size:11px;color:${t.sub};font-family:sans-serif;">🔒 Abgeschlossen</span>`;
+    if(isAdmin){acts+=`<button class="btn-icon" onclick="openModal('gift',${g.id});">✏️</button>`;acts+=`<button class="btn-icon" onclick="doRemove(${g.id});">🗑️</button>`;}
+    const hex=(g.cardBg||'#ffffff').replace('#','');
+    const r=parseInt(hex.substr(0,2),16),gg=parseInt(hex.substr(2,2),16),b2=parseInt(hex.substr(4,2),16);
+    const brightness=(r*299+gg*587+b2*114)/1000;
+    const autoTextColor=brightness<128?'#ffffff':'#3d2b1f';
+    const cardTextColor=g.textColor||autoTextColor;
+    const cardFont=g.fontFamily||'Georgia,serif';
+    return `<div class="card${isMine?" mine":isTaken?" taken":""}" style="background:${cardBgColor};font-family:${cardFont};">${imgHtml}<div class="card-body"><div class="card-name" style="color:${cardTextColor};">${esc(g.name)}</div>${g.description?`<div class="card-desc" style="color:${g.textColor?(g.textColor+'cc'):brightness<128?'rgba(255,255,255,0.8)':'#8c6a52'};">${esc(g.description)}</div>`:""}<div class="card-meta">${meta}</div></div><div class="card-footer">${status}<div class="card-actions">${acts}</div></div></div>`;
+  }).join("")+(isAdmin?`<div class="add-card" onclick="openModal('gift',0);"><div style="font-size:32px;color:${t.ac};margin-bottom:6px;">+</div><div style="font-size:13px;font-style:italic;">Artikel hinzufügen</div></div><div class="add-card" onclick="openModal('text',0);" style="border-color:${t.brd};color:${t.sub};"><div style="font-size:32px;color:${t.ac};margin-bottom:6px;">T</div><div style="font-size:13px;font-style:italic;">Textblock hinzufügen</div></div>`:"");
+
+  const allHeaderBlocks=[...(data.headerBlocks||[]).map(b=>({...b,_htype:'text'})),...(data.headerImgs||[]).map(b=>({...b,_htype:'img'}))].sort((a,b)=>(a.order||0)-(b.order||0));
+  const hblocks=allHeaderBlocks.map((b)=>{
+    if(b._htype==='img'){
+      const editBtns=isAdmin?`<div class="hblock-edit"><button class="btn-icon" onclick="openModal('himg','${b.id}');" style="background:white;font-size:12px;">✏️</button><button class="btn-icon" onclick="removeHImg('${b.id}');" style="background:white;font-size:12px;">🗑️</button></div>`:'';
+      const imgs=b.images||[];
+      const h=b.imgHeight||'200px';
+      const rounded=b.rounded?'12px':'4px';
+      let galleryHtml='';
+      if(b.layout==='grid'){galleryHtml=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(${h==='100px'?'80px':h==='200px'?'160px':'240px'},1fr));gap:8px;">${imgs.map(src=>`<img src="${esc(src)}" style="width:100%;height:${h};object-fit:cover;border-radius:${rounded};display:block;"/>`).join('')}</div>`;}
+      else if(b.layout==='single'){galleryHtml=imgs.map(src=>`<img src="${esc(src)}" style="width:100%;height:auto;max-height:${h==='100px'?'200px':h==='200px'?'350px':'500px'};object-fit:contain;border-radius:${rounded};display:block;margin:0 auto 8px;"/>`).join('');}
+      else{galleryHtml=`<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;">${imgs.map(src=>`<img src="${esc(src)}" style="height:${h};width:auto;flex-shrink:0;object-fit:cover;border-radius:${rounded};display:block;"/>`).join('')}</div>`;}
+      return `<div class="hblock" style="background:${b.bgColor||'transparent'};border-radius:12px;margin-bottom:8px;padding:12px;">${editBtns}${galleryHtml}</div>`;
+    }
+    const editBtns=isAdmin?`<div class="hblock-edit"><button class="btn-icon" onclick="openModal('hblock','${b.id}');" style="background:white;font-size:12px;">✏️</button><button class="btn-icon" onclick="removeHBlock('${b.id}');" style="background:white;font-size:12px;">🗑️</button></div>`:'';
+    return `<div class="hblock" style="background:${b.bgColor||'transparent'};border-radius:${b.bgColor&&b.bgColor!=='transparent'?'12px':'0'};margin-bottom:${b.bgColor&&b.bgColor!=='transparent'?'8px':'0'};">${editBtns}<p style="font-family:${b.fontFamily||'Georgia,serif'};font-size:${b.fontSize||'16px'};font-weight:${b.bold?'bold':'normal'};font-style:${b.italic?'italic':'normal'};color:${b.color||t.text};line-height:1.5;white-space:pre-wrap;">${esc(b.text||'')}</p></div>`;
+  }).join('');
+  const addHBlockBtn=isAdmin?`<div style="display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap;"><button onclick="openModal('hblock',0);" style="background:transparent;border:2px dashed ${t.brd};border-radius:10px;padding:6px 16px;font-size:12px;color:${t.sub};cursor:pointer;font-family:Georgia,serif;">T+ Textblock</button><button onclick="openModal('himg',0);" style="background:transparent;border:2px dashed ${t.brd};border-radius:10px;padding:6px 16px;font-size:12px;color:${t.sub};cursor:pointer;font-family:Georgia,serif;">🖼️ Bildblock</button></div>`:'';
+
+  document.getElementById("root").innerHTML=`
+    <div id="notif"></div>
+    ${d.bgUrl?`<div style="position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:0;pointer-events:none;"></div>`:""}
+    <div class="page">
+      <header class="header">
+        ${hblocks||`<div class="pill">Gemeinsame Wunschliste</div><h1 style="color:${d.bgUrl?"#fff":t.text};">${esc(d.headerText)}</h1><div class="subtitle">${esc(d.headerSub)}</div>`}
+        ${addHBlockBtn}
+        <div id="saving-badge" class="saving" style="display:none;">⏳ Speichern...</div>
+        <div class="stats" style="margin-top:8px;">${data.gifts.length} Artikel · ${claimed} vergeben · ${data.gifts.length-claimed} frei</div>
+        <div class="btn-row">${adminHtml}</div>
+      </header>
+      ${nameBar}
+      <div class="grid">${cards}</div>
+      <footer>🔄 Echtzeit-Updates · Kein Login für Freunde nötig</footer>
+    </div>`;
+}
+
+function closeModal(){
+  document.getElementById("modal-overlay")?.remove();
+  if(data.lockedUsers&&data.lockedUsers[userName]){
+    document.getElementById("cart-bar")?.remove();
+  }
+}
+
+function openConfirmModal(){
+  const t=THEMES[data.design.theme]||THEMES.warm;
+  const wrap=document.createElement("div");
+  wrap.id="confirm-overlay";
+  wrap.className="overlay";
+  wrap.innerHTML='<div class="modal" style="max-width:400px;text-align:center;">'
+    +'<div style="font-size:40px;margin-bottom:12px;">🛒</div>'
+    +'<h2 style="color:#222;margin-bottom:12px;">Auswahl abschließen?</h2>'
+    +'<p style="font-size:14px;color:#555;margin-bottom:24px;line-height:1.6;">Wenn du fertig bist mit deiner Auswahl, dann drücke auf <strong>Weiter</strong>.<br><br>Danach kannst du die Auswahl deiner Artikel <strong>nicht mehr ändern</strong>.</p>'
+    +'<div style="display:flex;gap:10px;">'
+    +'<button onclick="document.getElementById(\'confirm-overlay\').remove();" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid #e0c9b5;background:transparent;color:#888;font-family:Georgia,serif;cursor:pointer;font-size:14px;">Zurück</button>'
+    +'<button onclick="confirmAndPay();" style="flex:1;padding:12px;border-radius:10px;border:none;background:'+t.ac+';color:white;font-family:Georgia,serif;font-weight:bold;cursor:pointer;font-size:14px;">Weiter →</button>'
+    +'</div>'
+    +'</div>';
+  document.body.appendChild(wrap);
+}
+
+async function confirmAndPay(){
+  document.getElementById("confirm-overlay")?.remove();
+  try{
+    await set(ref(db,`geschenkeliste/lockedUsers/${userName}`),true);
+    if(!data.lockedUsers)data.lockedUsers={};
+    data.lockedUsers[userName]=true;
+    try{localStorage.setItem("gl-username-locked","true");}catch(e){}
+  }catch(e){console.error("Lock error:",e);}
+  openModal("cart");
+}
+
+function selColor(dot,hiddenId,color){
+  document.getElementById(hiddenId).value=color;
+  dot.closest('.color-row').querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));
+  dot.classList.add('active');
+}
+function selColorCustom(hiddenId,color){
+  document.getElementById(hiddenId).value=color;
+  const row=document.getElementById(hiddenId)?.closest?document.getElementById(hiddenId+'-picker')?.closest('.color-row'):null;
+  if(row)row.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));
+}
+async function unlockUser(name){
+  if(!data.lockedUsers)return;
+  delete data.lockedUsers[name];
+  await saveData();
+  showNotif("🔓 "+name+" entsperrt!");
+  closeModal();
+  openModal("unlock");
+}
+
+async function doSaveBank(){
+  data.bankAccount={
+    name:document.getElementById("m-bname")?.value||"",
+    iban:document.getElementById("m-biban")?.value||"",
+    bic:document.getElementById("m-bbic")?.value||"",
+    purpose:document.getElementById("m-bpurpose")?.value||"Spendenaktion",
+    paypal:document.getElementById("m-bpaypal")?.value||"",
+    klarna:document.getElementById("m-bklarna")?.value||"",
+    other:document.getElementById("m-bother")?.value||"",
+    otherLabel:document.getElementById("m-botherlabel")?.value||""
+  };
+  closeModal();await saveData();showNotif("🏦 Kontodaten gespeichert!");
+}
+async function doSaveHBlock(){
+  const text=document.getElementById("m-htext")?.value||"";
+  if(!text.trim()){showNotif("Bitte Text eingeben!");return;}
+  const hid=document.getElementById("m-hid")?.value;
+  const block={id:hid||String(Date.now()),text,fontFamily:document.getElementById("m-hfont")?.value||"Georgia,serif",fontSize:document.getElementById("m-hsize")?.value||"28px",bold:document.getElementById("m-hbold")?.classList.contains("active")||false,italic:document.getElementById("m-hitalic")?.classList.contains("active")||false,color:document.getElementById("m-hcolor")?.value||"#3d2b1f",bgColor:document.getElementById("m-hbgcolor")?.value||"transparent",order:hid?((data.headerBlocks||[]).find(b=>b.id===hid)?.order||0):Date.now()};
+  if(!data.headerBlocks)data.headerBlocks=[];
+  if(hid){data.headerBlocks=data.headerBlocks.map(b=>b.id===hid?block:b);showNotif("✏️ Textblock aktualisiert!");}
+  else{data.headerBlocks.push(block);showNotif("📝 Textblock hinzugefügt!");}
+  closeModal();await saveData();
+}
+function handleHImgUpload(input){
+  const files=Array.from(input.files);if(!files.length)return;
+  const loading=document.getElementById("m-hi-loading"),lbl=document.getElementById("m-hi-lbl");
+  if(loading)loading.style.display="block";
+  let processed=0;
+  const existing=JSON.parse(document.getElementById("m-hiimgs")?.value||"[]");
+  const newImgs=[...existing];
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=800;let w=img.width,h=img.height;
+        if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+        const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+        canvas.getContext("2d").drawImage(img,0,0,w,h);
+        newImgs.push(canvas.toDataURL("image/jpeg",.8));
+        processed++;
+        if(processed===files.length){
+          document.getElementById("m-hiimgs").value=JSON.stringify(newImgs);
+          if(loading)loading.style.display="none";
+          if(lbl)lbl.textContent=`✅ ${newImgs.length} Bild(er) ausgewählt`;
+          const prev=document.getElementById("m-hiprev");
+          if(prev)prev.innerHTML=newImgs.map((src,i)=>`<div style="position:relative;display:inline-block;margin:4px;"><img src="${src}" style="height:80px;width:auto;object-fit:cover;border-radius:6px;border:1px solid #ddd;"/><button onclick="removeHImgItem(${i});" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">✕</button></div>`).join('');
+        }
+      };img.src=e.target.result;
+    };reader.readAsDataURL(file);
+  });
+}
+function removeHImgItem(idx){
+  const imgs=JSON.parse(document.getElementById("m-hiimgs")?.value||"[]");
+  imgs.splice(idx,1);
+  document.getElementById("m-hiimgs").value=JSON.stringify(imgs);
+  const prev=document.getElementById("m-hiprev");
+  if(prev)prev.innerHTML=imgs.map((src,i)=>`<div style="position:relative;display:inline-block;margin:4px;"><img src="${src}" style="height:80px;width:auto;object-fit:cover;border-radius:6px;border:1px solid #ddd;"/><button onclick="removeHImgItem(${i});" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">✕</button></div>`).join('');
+  const lbl=document.getElementById("m-hi-lbl");
+  if(lbl)lbl.textContent=imgs.length?`✅ ${imgs.length} Bild(er) ausgewählt`:"📁 JPG oder PNG auswählen";
+}
+function clearHImg(){document.getElementById("m-hiimgs").value="[]";const prev=document.getElementById("m-hiprev");if(prev)prev.innerHTML="";const lbl=document.getElementById("m-hi-lbl");if(lbl)lbl.textContent="📁 JPG oder PNG auswählen";document.getElementById("m-hifile").value="";}
+async function doSaveHImg(){
+  const images=JSON.parse(document.getElementById("m-hiimgs")?.value||"[]");
+  if(!images.length){showNotif("Bitte mindestens ein Bild auswählen!");return;}
+  const hid=document.getElementById("m-hiid")?.value;
+  const block={id:hid||String(Date.now()),images,layout:document.getElementById("m-hilayout")?.value||"row",imgHeight:document.getElementById("m-hiheight")?.value||"200px",rounded:document.getElementById("m-hirounded")?.classList.contains("active")||false,bgColor:document.getElementById("m-hibgcolor")?.value||"transparent",order:hid?((data.headerImgs||[]).find(b=>b.id===hid)?.order||0):Date.now()};
+  if(!data.headerImgs)data.headerImgs=[];
+  if(hid){data.headerImgs=data.headerImgs.map(b=>b.id===hid?block:b);showNotif("✏️ Bildblock aktualisiert!");}
+  else{data.headerImgs.push(block);showNotif("🖼️ Bildblock hinzugefügt!");}
+  closeModal();await saveData();
+}
+async function removeHImg(id){if(!confirm("Bildblock entfernen?"))return;data.headerImgs=(data.headerImgs||[]).filter(b=>b.id!==id);await saveData();showNotif("🗑️ Entfernt");}
+async function removeHBlock(id){if(!confirm("Textblock entfernen?"))return;data.headerBlocks=(data.headerBlocks||[]).filter(b=>b.id!==id);await saveData();showNotif("🗑️ Entfernt");}
+function selSize(btn,id,size){
+  const targetId=id||"m-tsize";
+  const el=document.getElementById(targetId);
+  if(el)el.value=size;
+  const container=btn.closest("div");
+  if(container)container.querySelectorAll(".font-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+}
+function toggleStyle(id){const btn=document.getElementById(id);btn.classList.toggle("active");}
+async function doSaveText(){
+  const text=document.getElementById("m-ttext")?.value||"";
+  if(!text.trim()){showNotif("Bitte Text eingeben!");return;}
+  const tid=document.getElementById("m-tid")?.value;
+  const block={id:tid||String(Date.now()),text,fontFamily:document.getElementById("m-tfont")?.value||"Georgia,serif",fontSize:document.getElementById("m-tsize")?.value||"16px",bold:document.getElementById("m-tbold")?.classList.contains("active")||false,italic:document.getElementById("m-titalic")?.classList.contains("active")||false,order:tid?((data.textBlocks||[]).find(b=>b.id===tid)?.order||0):Date.now()};
+  if(!data.textBlocks)data.textBlocks=[];
+  if(tid){data.textBlocks=data.textBlocks.map(b=>b.id===tid?block:b);showNotif("✏️ Text aktualisiert!");}
+  else{data.textBlocks.push(block);showNotif("📝 Textblock hinzugefügt!");}
+  closeModal();await saveData();
+}
+async function doRemoveText(id){if(!confirm("Textblock entfernen?"))return;data.textBlocks=(data.textBlocks||[]).filter(b=>b.id!==id);await saveData();showNotif("🗑️ Entfernt");}
+
+function openModal(type,giftId){
+  const t=THEMES[data.design.theme]||THEMES.warm;
+  let body="";
+
+  // ===== 🔒 SECURITY RULES MODAL =====
+  if(type==="rules"){
+    const escapedRules=esc(RECOMMENDED_RULES);
+    body=`<h2 style="color:#222;">🔒 Firebase Security Rules</h2>
+      <p style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;font-family:sans-serif;">
+        Diese Rules schützen deine Datenbank: Nur eingeloggte Admins können Artikel, Design und Kontodaten ändern. 
+        Reservierungen bleiben für alle offen, aber mit Validierung.
+      </p>
+
+      <div style="background:#fff3cd;border:1.5px solid #ffc107;border-radius:10px;padding:12px;margin-bottom:16px;font-size:13px;font-family:sans-serif;color:#856404;">
+        ⚠️ <strong>Aktuell läuft deine DB im Testmodus</strong> — jeder kann alles lesen und schreiben! 
+        Bitte die Rules unten sofort einrichten.
+      </div>
+
+      <div class="rules-step">
+        <div class="rules-step-num" style="background:#c97d4e;">1</div>
+        <div style="font-size:13px;font-family:sans-serif;color:#333;">
+          Öffne <a href="https://console.firebase.google.com" target="_blank" style="color:#3a6fd8;font-weight:bold;">console.firebase.google.com</a>
+          → dein Projekt → <strong>Realtime Database</strong> → Reiter <strong>„Regeln"</strong>
+        </div>
+      </div>
+
+      <div class="rules-step">
+        <div class="rules-step-num" style="background:#c97d4e;">2</div>
+        <div style="font-size:13px;font-family:sans-serif;color:#333;">
+          Den <strong>gesamten Inhalt</strong> im Editor löschen und durch die Rules unten ersetzen.
+        </div>
+      </div>
+
+      <div class="rules-step">
+        <div class="rules-step-num" style="background:#c97d4e;">3</div>
+        <div style="font-size:13px;font-family:sans-serif;color:#333;">
+          Auf <strong>„Veröffentlichen"</strong> klicken — fertig! ✅
+        </div>
+      </div>
+
+      <label style="margin-top:4px;">Rules zum Kopieren</label>
+      <pre class="rules-code" id="rules-code-block">${escapedRules}</pre>
+
+      <div style="display:flex;gap:10px;margin-bottom:16px;">
+        <button onclick="
+          navigator.clipboard.writeText(document.getElementById('rules-code-block').innerText)
+            .then(()=>showNotif('✅ Rules kopiert! Jetzt in Firebase einfügen.'))
+            .catch(()=>showNotif('Bitte manuell markieren und kopieren'));
+        " style="flex:1;padding:10px;border-radius:10px;border:none;background:#1a1a2e;color:#a0c4ff;font-family:Georgia,serif;font-weight:bold;cursor:pointer;font-size:14px;">
+          📋 Rules kopieren
+        </button>
+        <a href="https://console.firebase.google.com" target="_blank" style="flex:1;padding:10px;border-radius:10px;border:none;background:#c97d4e;color:white;font-family:Georgia,serif;font-weight:bold;cursor:pointer;font-size:14px;text-decoration:none;display:flex;align-items:center;justify-content:center;">
+          🔗 Firebase öffnen
+        </a>
+      </div>
+
+      <div style="background:#f0f8f0;border:1.5px solid #c0ddc8;border-radius:10px;padding:12px;font-size:12px;font-family:sans-serif;color:#1a3324;line-height:1.7;">
+        <strong>Was diese Rules bewirken:</strong><br>
+        ✅ Jeder kann <em>lesen</em> (Artikel ansehen)<br>
+        🔒 Nur Admin kann Artikel, Design, Kontodaten <em>ändern</em><br>
+        📝 Reservierungen (<em>claims</em>) bleiben für alle schreibbar — aber max. 100 Zeichen<br>
+        🛡️ Gesperrte Nutzer und Passwort: nur Admin
+      </div>
+
+      <div class="modal-btns" style="margin-top:16px;">
+        <button class="btn-cancel" onclick="closeModal();">Schließen</button>
+      </div>`;
+  }
+  // ===== CART MODAL =====
+  else if(type==="cart"){
+    const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
+    const total=myItems.reduce((sum,g)=>{
+      const p=parseFloat((g.price||'').replace(/[^0-9.,]/g,'').replace(',','.'));
+      return sum+(isNaN(p)?0:p);
+    },0);
+    const b=data.bankAccount||{};
+    let itemsHtml='';
+    myItems.forEach(g=>{
+      itemsHtml+='<div style="display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #444;font-size:14px;color:white;background:#222;">'
+        +'<span>'+esc(g.name)+'</span>'
+        +'<span style="font-weight:bold;">'+(g.price||'–')+'</span>'
+        +'</div>';
+    });
+    let bankHtml='';
+    if(b.iban||b.paypal||b.klarna||b.other){
+      bankHtml='<div style="background:#f0f6ff;border:1.5px solid #c0d4f0;border-radius:12px;padding:16px;margin-bottom:12px;">'
+        +'<p style="font-size:13px;color:#444;margin-bottom:12px;font-family:sans-serif;font-weight:bold;">Zahlungsmoeglichkeiten:</p>';
+      if(b.iban){
+        bankHtml+='<div style="background:white;border-radius:8px;padding:12px;margin-bottom:8px;">';
+        if(b.name)bankHtml+='<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:#555;font-size:12px;font-family:sans-serif;">Empfänger</span><span style="font-weight:bold;color:#222;">'+esc(b.name)+'</span></div>';
+        bankHtml+='<div style="margin-bottom:10px;">'
+          +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:#555;font-size:12px;font-family:sans-serif;">IBAN</span></div>'
+          +'<div style="font-weight:bold;font-family:monospace;color:#222;font-size:13px;word-break:break-all;margin-bottom:6px;">'+esc(b.iban)+'</div>'
+          +'<button onclick="navigator.clipboard.writeText(this.dataset.iban);showNotif(\'IBAN kopiert!\');" data-iban="'+esc(b.iban)+'" style="background:#3a6fd8;color:white;border:none;border-radius:6px;padding:6px;font-size:12px;cursor:pointer;width:100%;text-align:center;">📋 IBAN kopieren</button>'
+          +'</div>';
+        if(b.purpose)bankHtml+='<div style="display:flex;justify-content:space-between;"><span style="color:#555;font-size:12px;font-family:sans-serif;">Verwendungszweck</span><span style="font-weight:bold;color:#222;">'+esc(b.purpose)+'</span></div>';
+        bankHtml+='</div>';
+      }
+      var payBtns='';
+      if(b.paypal)payBtns+='<a href="'+b.paypal+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#003087;color:white;text-decoration:none;border-radius:8px;padding:10px 16px;font-size:13px;font-family:sans-serif;font-weight:bold;margin:4px;">💙 PayPal</a>';
+      if(b.klarna)payBtns+='<a href="'+b.klarna+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#ffb3c7;color:#17120e;text-decoration:none;border-radius:8px;padding:10px 16px;font-size:13px;font-family:sans-serif;font-weight:bold;margin:4px;">🌸 Klarna</a>';
+      if(b.other)payBtns+='<a href="'+b.other+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#6c757d;color:white;text-decoration:none;border-radius:8px;padding:10px 16px;font-size:13px;font-family:sans-serif;font-weight:bold;margin:4px;">'+(b.otherLabel||'Weitere Zahlung')+'</a>';
+      if(payBtns)bankHtml+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">'+payBtns+'</div>';
+      bankHtml+='</div>';
+      bankHtml+='<div style="background:#fff8f2;border:1.5px solid #e8d5c4;border-radius:12px;padding:14px;margin-bottom:12px;text-align:center;">'
+        +'<a href="mailto:gl@villawigman.de?subject=Spendenbescheinigung&body=Hallo,%0AIch moechte eine Spendenbescheinigung erhalten.%0A%0AMein Name und Adresse:%0A" style="display:inline-block;background:#c97d4e;color:white;text-decoration:none;border-radius:10px;padding:10px 20px;font-size:13px;font-family:Georgia,serif;font-weight:bold;">📄 Ab 50 Euro Spendenbescheinigung erhalten</a>'
+        +'<p style="font-size:11px;color:#8c6a52;margin-top:8px;font-family:sans-serif;">Klicke um deine Adresse per E-Mail mitzuteilen</p>'
+        +'</div>';
+    } else {
+      bankHtml='<div style="background:#fff8f2;border:1.5px solid #e8d5c4;border-radius:12px;padding:16px;text-align:center;color:#8c6a52;font-size:14px;">Der Admin hat noch keine Kontodaten hinterlegt.</div>';
+    }
+    body='<h2 style="color:#222;">Deine Auswahl</h2>'
+      +'<div style="margin-bottom:16px;">'+itemsHtml+'</div>'
+      +'<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold;padding:12px 16px;border-radius:10px;margin-bottom:20px;background:#222;color:white;">'
+      +'<span>Gesamt</span>'
+      +'<span>'+(total>0?total.toFixed(2)+' €':'–')+'</span>'
+      +'</div>'
+      +bankHtml
+      +'<div style="display:flex;gap:10px;margin-top:10px;">'
+      +'<button onclick="downloadSummary();" style="flex:1;padding:10px;border-radius:10px;border:none;background:#4a8c5c;color:white;font-family:Georgia,serif;font-weight:bold;cursor:pointer;font-size:14px;">📥 Zusammenfassung herunterladen</button>'
+      +'<button onclick="closeModal();" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #3d2b1f;background:#3d2b1f;color:white;font-family:Georgia,serif;font-weight:bold;cursor:pointer;font-size:14px;">Beenden</button>'
+      +'</div>';
+  }
+  else if(type==="unlock"){
+    const locked=Object.keys(data.lockedUsers||{});
+    window._lockedList=locked;
+    const rows=locked.length
+      ?locked.map((name,idx)=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;">'
+        +'<span style="font-size:15px;color:#222;">👤 '+esc(name)+'</span>'
+        +'<button data-idx="'+idx+'" onclick="unlockUser(window._lockedList[this.dataset.idx]);" style="background:#4a8c5c;color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:sans-serif;">🔓 Entsperren</button>'
+        +'</div>').join('')
+      :'<p style="text-align:center;color:#888;font-style:italic;padding:16px;">Keine gesperrten Nutzer</p>';
+    body='<h2 style="color:#222;">🔓 Sperren aufheben</h2>'
+      +'<p style="font-size:13px;color:#888;margin-bottom:16px;font-family:sans-serif;">Gesperrte Nutzer können nach dem Entsperren ihre Auswahl wieder ändern.</p>'
+      +'<div>'+rows+'</div>'
+      +'<div style="margin-top:16px;">'
+      +'<button class="btn-cancel" onclick="closeModal();">Schließen</button>'
+      +'</div>';
+  }
+  else if(type==="bank"){
+    const b=data.bankAccount||{};
+    body=`<h2>🏦 Kontodaten eingeben</h2>
+      <p style="font-size:13px;color:#888;font-style:italic;margin-bottom:16px;">Diese Daten sehen alle Nutzer wenn sie auf "Informationen zur Überweisung" klicken.</p>
+      <label>Empfänger Name</label>
+      <input id="m-bname" value="${esc(b.name||'')}" placeholder="z.B. Max Mustermann"/>
+      <label>IBAN</label>
+      <input id="m-biban" value="${esc(b.iban||'')}" placeholder="DE12 3456 7890 1234 5678 90" style="font-family:monospace;"/>
+      <label>BIC (optional)</label>
+      <input id="m-bbic" value="${esc(b.bic||'')}" placeholder="z.B. DEUTDEDB"/>
+      <label>Verwendungszweck</label>
+      <input id="m-bpurpose" value="${esc(b.purpose||'Spendenaktion')}" placeholder="z.B. Spendenaktion"/>
+      <label>PayPal-Link (optional)</label>
+      <input id="m-bpaypal" value="${esc(b.paypal||'')}" placeholder="https://paypal.me/deinname"/>
+      <label>Klarna-Link (optional)</label>
+      <input id="m-bklarna" value="${esc(b.klarna||'')}" placeholder="https://..."/>
+      <label>Weiterer Zahlungslink (optional)</label>
+      <input id="m-bother" value="${esc(b.other||'')}" placeholder="https://..."/>
+      <input id="m-botherlabel" value="${esc(b.otherLabel||'')}" placeholder="Bezeichnung z.B. Revolut, Wise..."/>
+      <div class="modal-btns" style="margin-top:14px;">
+        <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
+        <button class="btn-save" style="background:${t.ac};" onclick="doSaveBank();">Speichern</button>
+      </div>`;
+  }
+  else if(type==="login"){body=`<h2>🔑 Admin-Anmeldung</h2><label>E-Mail</label><input type="email" id="m-email" placeholder="deine@email.de" style="margin-bottom:8px;"/><label>Passwort</label><input type="password" id="m-pw" placeholder="Passwort..." onkeydown="if(event.key==='Enter')doLogin();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doLogin();">Anmelden</button></div>`;}
+  else if(type==="setpw"){body=`<h2>🔐 Admin-Passwort</h2><label>Neues Passwort (min. 4 Zeichen)</label><input type="password" id="m-pw1" placeholder="Passwort..."/><label>Wiederholen</label><input type="password" id="m-pw2" placeholder="Wiederholen..." onkeydown="if(event.key==='Enter')doSetPw();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doSetPw();">Festlegen</button></div>`;}
+  else if(type==="text"){
+    const b=giftId?((data.textBlocks||[]).find(x=>x.id===giftId)):null;
+    const v=b||{text:"",fontFamily:"Georgia,serif",fontSize:"16px",bold:false,italic:false};
+    body=`<h2>${b?"✏️ Text bearbeiten":"📝 Textblock"}</h2>
+      <input type="hidden" id="m-tid" value="${b?b.id:""}"/>
+      <label>Text</label>
+      <textarea id="m-ttext" placeholder="Hier deinen Text eingeben...">${esc(v.text)}</textarea>
+      <label>Schriftart</label>
+      <select id="m-tfont">
+        <option value="Georgia,serif" ${v.fontFamily==="Georgia,serif"?"selected":""}>Georgia (klassisch)</option>
+        <option value="Arial,sans-serif" ${v.fontFamily==="Arial,sans-serif"?"selected":""}>Arial (modern)</option>
+        <option value="Verdana,sans-serif" ${v.fontFamily==="Verdana,sans-serif"?"selected":""}>Verdana (rund)</option>
+        <option value="Courier New,monospace" ${v.fontFamily==="Courier New,monospace"?"selected":""}>Courier (maschinenschrift)</option>
+        <option value="Palatino,serif" ${v.fontFamily==="Palatino,serif"?"selected":""}>Palatino (elegant)</option>
+      </select>
+      <label>Schriftgröße</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+        <button class="font-btn${v.fontSize==="12px"?" active":""}" onclick="selSize(this,'m-tsize','12px');">Klein</button>
+        <button class="font-btn${v.fontSize==="16px"?" active":""}" onclick="selSize(this,'m-tsize','16px');">Normal</button>
+        <button class="font-btn${v.fontSize==="20px"?" active":""}" onclick="selSize(this,'m-tsize','20px');">Groß</button>
+        <button class="font-btn${v.fontSize==="26px"?" active":""}" onclick="selSize(this,'m-tsize','26px');">Titel</button>
+        <button class="font-btn${v.fontSize==="34px"?" active":""}" onclick="selSize(this,'m-tsize','34px');">Überschrift</button>
+      </div>
+      <input type="hidden" id="m-tsize" value="${v.fontSize||'16px'}"/>
+      <label>Stil</label>
+      <div style="display:flex;gap:6px;margin-bottom:16px;">
+        <button class="font-btn${v.bold?" active":""}" id="m-tbold" onclick="toggleStyle('m-tbold');" style="font-weight:bold;">F</button>
+        <button class="font-btn${v.italic?" active":""}" id="m-titalic" onclick="toggleStyle('m-titalic');" style="font-style:italic;">K</button>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
+        <button class="btn-save" style="background:${t.ac};" onclick="doSaveText();">${b?"Speichern":"Hinzufügen"}</button>
+      </div>`;
+  }
+  else if(type==="himg"){
+    const b=giftId?((data.headerImgs||[]).find(x=>x.id===giftId)):null;
+    const v=b||{images:[],layout:"row",gap:"8px",imgHeight:"200px",rounded:true,bgColor:"transparent"};
+    const imgs=v.images||[];
+    const bgColors=["transparent","#fdf6ee","#fff5f7","#f3f8f4","#f0f6ff","#fff9fe","#3d2b1f","#f5e6d3","#fce4ec","#d8eedf","#dce8fa"];
+    const bgDots=bgColors.map(c=>`<div class="color-dot${v.bgColor===c?" active":""}" style="background:${c==="transparent"?"repeating-linear-gradient(45deg,#ccc,#ccc 3px,#fff 3px,#fff 6px)":c};border-color:${v.bgColor===c?"#333":"#ddd"};" onclick="selColor(this,'m-hibgcolor','${c}');"></div>`).join('');
+    const prevImgs=imgs.map((src,i)=>`<div style="position:relative;display:inline-block;margin:4px;"><img src="${esc(src)}" style="height:80px;width:auto;object-fit:cover;border-radius:6px;border:1px solid #ddd;"/><button onclick="removeHImgItem(${i});" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;line-height:1;">✕</button></div>`).join('');
+    body=`<h2>${b?"✏️ Galerie bearbeiten":"🖼️ Neue Bildergalerie"}</h2>
+      <input type="hidden" id="m-hiid" value="${b?b.id:""}"/>
+      <input type="hidden" id="m-hiimgs" value="${esc(JSON.stringify(imgs))}"/>
+      <label>📷 Bilder hinzufügen (mehrere möglich)</label>
+      <div class="upload-box" onclick="document.getElementById('m-hifile').click();">
+        <div id="m-hi-lbl" style="font-size:13px;color:#8c6a52;">📁 JPG oder PNG auswählen (mehrere gleichzeitig möglich)</div>
+        <input type="file" id="m-hifile" accept="image/*" multiple style="display:none;" onchange="handleHImgUpload(this);"/>
+      </div>
+      <div id="m-hi-loading" style="display:none;text-align:center;padding:8px;font-size:13px;color:#8c6a52;">⏳ Wird verarbeitet...</div>
+      <div id="m-hiprev" style="display:flex;flex-wrap:wrap;margin-bottom:12px;min-height:${imgs.length?'20px':'0'}">${prevImgs}</div>
+      <label>Anordnung</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <button class="font-btn${(v.layout||'row')==='row'?" active":""}" onclick="selSize(this,'m-hilayout','row');">↔ Nebeneinander</button>
+        <button class="font-btn${v.layout==='grid'?" active":""}" onclick="selSize(this,'m-hilayout','grid');">⊞ Raster</button>
+        <button class="font-btn${v.layout==='single'?" active":""}" onclick="selSize(this,'m-hilayout','single');">☐ Einzeln groß</button>
+      </div>
+      <input type="hidden" id="m-hilayout" value="${v.layout||'row'}"/>
+      <label>Bildhöhe</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+        <button class="font-btn${v.imgHeight==="100px"?" active":""}" onclick="selSize(this,'m-hiheight','100px');">Klein</button>
+        <button class="font-btn${v.imgHeight==="200px"?" active":""}" onclick="selSize(this,'m-hiheight','200px');">Mittel</button>
+        <button class="font-btn${v.imgHeight==="300px"?" active":""}" onclick="selSize(this,'m-hiheight','300px');">Groß</button>
+        <button class="font-btn${v.imgHeight==="100%"?" active":""}" onclick="selSize(this,'m-hiheight','100%');">Original</button>
+      </div>
+      <input type="hidden" id="m-hiheight" value="${v.imgHeight||'200px'}"/>
+      <label>Ecken</label>
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <button class="font-btn${v.rounded?" active":""}" id="m-hirounded" onclick="toggleStyle('m-hirounded');">Abgerundet</button>
+      </div>
+      <label>Hintergrundfarbe</label>
+      <div class="color-row">${bgDots}<input type="color" class="color-input" id="m-hibgcolor-picker" value="${v.bgColor&&v.bgColor!=="transparent"?v.bgColor:"#ffffff"}" oninput="selColorCustom('m-hibgcolor',this.value);"/></div>
+      <input type="hidden" id="m-hibgcolor" value="${v.bgColor||'transparent'}"/>
+      <div class="modal-btns" style="margin-top:14px;">
+        <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
+        <button class="btn-save" style="background:${t.ac};" onclick="doSaveHImg();">${b?"Speichern":"Hinzufügen"}</button>
+      </div>`;
+  }
+  else if(type==="hblock"){
+    const b=giftId?((data.headerBlocks||[]).find(x=>x.id===giftId)):null;
+    const v=b||{text:"",fontFamily:"Georgia,serif",fontSize:"28px",bold:false,italic:false,color:"#3d2b1f",bgColor:"transparent"};
+    const textColors=["#3d2b1f","#ffffff","#c97d4e","#4a8c5c","#3a6fd8","#e05c8a","#a855f7","#f59e0b","#000000"];
+    const bgColors=["transparent","#fdf6ee","#fff5f7","#f3f8f4","#f0f6ff","#fff9fe","#3d2b1f","#f5e6d3","#fce4ec","#d8eedf","#dce8fa"];
+    const tcDots=textColors.map(c=>`<div class="color-dot${v.color===c?" active":""}" style="background:${c==="transparent"?"repeating-linear-gradient(45deg,#ccc,#ccc 3px,#fff 3px,#fff 6px)":c};border-color:${v.color===c?"#333":"#ddd"};" onclick="selColor(this,'m-hcolor','${c}');"></div>`).join('');
+    const bgDots=bgColors.map(c=>`<div class="color-dot${v.bgColor===c?" active":""}" style="background:${c==="transparent"?"repeating-linear-gradient(45deg,#ccc,#ccc 3px,#fff 3px,#fff 6px)":c};border-color:${v.bgColor===c?"#333":"#ddd"};" onclick="selColor(this,'m-hbgcolor','${c}');"></div>`).join('');
+    body=`<h2>${b?"✏️ Textblock bearbeiten":"📝 Neuer Textblock"}</h2>
+      <input type="hidden" id="m-hid" value="${b?b.id:""}"/>
+      <label>Text</label>
+      <textarea id="m-htext" placeholder="z.B. Herzlich Willkommen! 🎉" style="min-height:80px;">${esc(v.text)}</textarea>
+      <label>Schriftart</label>
+      <select id="m-hfont" style="margin-bottom:12px;">
+        <option value="Georgia,serif" ${v.fontFamily==="Georgia,serif"?"selected":""}>Georgia (klassisch)</option>
+        <option value="Arial,sans-serif" ${v.fontFamily==="Arial,sans-serif"?"selected":""}>Arial (modern)</option>
+        <option value="Verdana,sans-serif" ${v.fontFamily==="Verdana,sans-serif"?"selected":""}>Verdana (rund)</option>
+        <option value="Courier New,monospace" ${v.fontFamily==="Courier New,monospace"?"selected":""}>Courier (Schreibmaschine)</option>
+        <option value="Palatino,serif" ${v.fontFamily==="Palatino,serif"?"selected":""}>Palatino (elegant)</option>
+        <option value="Impact,sans-serif" ${v.fontFamily==="Impact,sans-serif"?"selected":""}>Impact (fett/stark)</option>
+      </select>
+      <label>Schriftgröße</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+        <button class="font-btn${v.fontSize==="13px"?" active":""}" onclick="selSize(this,'m-hsize','13px');">Winzig</button>
+        <button class="font-btn${v.fontSize==="16px"?" active":""}" onclick="selSize(this,'m-hsize','16px');">Klein</button>
+        <button class="font-btn${v.fontSize==="20px"?" active":""}" onclick="selSize(this,'m-hsize','20px');">Normal</button>
+        <button class="font-btn${v.fontSize==="28px"?" active":""}" onclick="selSize(this,'m-hsize','28px');">Groß</button>
+        <button class="font-btn${v.fontSize==="36px"?" active":""}" onclick="selSize(this,'m-hsize','36px');">Titel</button>
+        <button class="font-btn${v.fontSize==="48px"?" active":""}" onclick="selSize(this,'m-hsize','48px');">Riesig</button>
+      </div>
+      <input type="hidden" id="m-hsize" value="${v.fontSize||'28px'}"/>
+      <label>Stil</label>
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <button class="font-btn${v.bold?" active":""}" id="m-hbold" onclick="toggleStyle('m-hbold');" style="font-weight:bold;">Fett</button>
+        <button class="font-btn${v.italic?" active":""}" id="m-hitalic" onclick="toggleStyle('m-hitalic');" style="font-style:italic;">Kursiv</button>
+      </div>
+      <label>Schriftfarbe</label>
+      <div class="color-row">${tcDots}<input type="color" class="color-input" id="m-hcolor-picker" value="${v.color&&v.color!=="transparent"?v.color:"#3d2b1f"}" oninput="selColorCustom('m-hcolor',this.value);"/></div>
+      <input type="hidden" id="m-hcolor" value="${v.color||'#3d2b1f'}"/>
+      <label>Hintergrundfarbe</label>
+      <div class="color-row">${bgDots}<input type="color" class="color-input" id="m-hbgcolor-picker" value="${v.bgColor&&v.bgColor!=="transparent"?v.bgColor:"#ffffff"}" oninput="selColorCustom('m-hbgcolor',this.value);"/></div>
+      <input type="hidden" id="m-hbgcolor" value="${v.bgColor||'transparent'}"/>
+      <div class="modal-btns" style="margin-top:14px;">
+        <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
+        <button class="btn-save" style="background:${t.ac};" onclick="doSaveHBlock();">${b?"Speichern":"Hinzufügen"}</button>
+      </div>`;
+  }
+  else if(type==="gift"){
+    const g=giftId?data.gifts.find(x=>x.id===giftId):null;
+    const v=g||{name:"",emoji:"🎁",price:"",description:"",imageUrl:"",productUrl:""};
+    body=`<h2>${g?"✏️ Bearbeiten":"🎁 Neuer Artikel"}</h2>
+      <input type="hidden" id="m-gid" value="${g?g.id:""}"/>
+      <label>Name *</label><input id="m-gname" value="${esc(v.name)}" placeholder="z.B. Kaffeemaschine"/>
+      <label>Emoji</label><input id="m-gemoji" value="${esc(v.emoji)}" placeholder="🎁" style="width:80px;"/>
+      <label>Preis</label><input id="m-gprice" value="${esc(v.price)}" placeholder="~50€"/>
+      <label>Beschreibung</label><input id="m-gdesc" value="${esc(v.description)}" placeholder="Kurze Beschreibung"/>
+      <label>📷 Foto vom Computer</label>
+      <div class="upload-box" onclick="document.getElementById('m-gfile').click();">
+        <div id="m-upload-lbl" style="font-size:13px;color:#8c6a52;">${v.imageUrl?"✅ Foto vorhanden – klicken zum Ändern":"📁 JPG oder PNG auswählen"}</div>
+        <input type="file" id="m-gfile" accept="image/*" style="display:none;" onchange="handleUpload(this);"/>
+      </div>
+      <div id="m-img-loading" style="display:none;text-align:center;padding:8px;font-size:13px;color:#8c6a52;">⏳ Wird verarbeitet...</div>
+      <div id="m-imgprev" style="${v.imageUrl?"":"display:none;"}margin-bottom:12px;">
+        <img id="m-imgprev-img" src="${esc(v.imageUrl)}" style="width:100%;max-height:160px;object-fit:contain;border-radius:8px;background:#f5ede4;"/>
+        <button onclick="clearUpload();" style="margin-top:6px;background:transparent;border:1px solid #ddd;border-radius:7px;padding:3px 12px;cursor:pointer;font-size:12px;color:#888;">✕ Foto entfernen</button>
+      </div>
+      <input type="hidden" id="m-gimg" value="${esc(v.imageUrl)}"/>
+      <label>🔗 Produkt-Link (optional)</label>
+      <input id="m-glink" value="${esc(v.productUrl)}" placeholder="https://www.amazon.de/..." style="font-family:sans-serif;font-size:12px;"/>
+      <label>🎨 Karten-Hintergrundfarbe</label>
+      <div class="color-row" style="margin-bottom:12px;">${["#ffffff","#fff8f2","#fff5f7","#f3f8f4","#f0f6ff","#fff9fe","#fffde7","#f3e5f5","#e8f5e9","#18181b","#3d2b1f","#0d1f40"].map(c=>`<div class="color-dot${(v.cardBg||'#ffffff')===c?" active":""}" style="background:${c};border:2px solid ${(v.cardBg||'#ffffff')===c?"#555":"#ddd"};" onclick="selColor(this,'m-gcardBg','${c}');"></div>`).join('')}<input type="color" class="color-input" id="m-gcardBg-picker" value="${v.cardBg||'#ffffff'}" oninput="selColorCustom('m-gcardBg',this.value);"/></div>
+      <input type="hidden" id="m-gcardBg" value="${esc(v.cardBg||'#ffffff')}"/>
+      <label>🖊️ Schriftfarbe</label>
+      <div class="color-row" style="margin-bottom:12px;">${["#3d2b1f","#000000","#ffffff","#c97d4e","#4a8c5c","#3a6fd8","#e05c8a","#a855f7","#f59e0b","#e53935"].map(c=>`<div class="color-dot${(v.textColor||'')===c?" active":""}" style="background:${c};border:2px solid ${(v.textColor||'')===c?"#555":"#ddd"};" onclick="selColor(this,'m-gtextColor','${c}');"></div>`).join('')}<input type="color" class="color-input" id="m-gtextColor-picker" value="${v.textColor||'#3d2b1f'}" oninput="selColorCustom('m-gtextColor',this.value);"/></div>
+      <input type="hidden" id="m-gtextColor" value="${esc(v.textColor||'')}"/>
+      <label>🖼️ Foto-Hintergrundfarbe</label>
+      <div class="color-row" style="margin-bottom:12px;">${["#f5ede4","#ffffff","#f5e6d3","#fce4ec","#d8eedf","#dce8fa","#f3e8ff","#fffde7","#18181b","#3d2b1f"].map(c=>`<div class="color-dot${(v.imgBg||'#f5ede4')===c?" active":""}" style="background:${c};border:2px solid ${(v.imgBg||'#f5ede4')===c?"#555":"#ddd"};" onclick="selColor(this,'m-gimgBg','${c}');"></div>`).join('')}<input type="color" class="color-input" id="m-gimgBg-picker" value="${v.imgBg||'#f5ede4'}" oninput="selColorCustom('m-gimgBg',this.value);"/></div>
+      <input type="hidden" id="m-gimgBg" value="${esc(v.imgBg||'#f5ede4')}"/>
+      <label>Schriftart</label>
+      <select id="m-gfont" style="margin-bottom:12px;">
+        <option value="Georgia,serif" ${(v.fontFamily||'Georgia,serif')==="Georgia,serif"?"selected":""}>Georgia (klassisch)</option>
+        <option value="Arial,sans-serif" ${v.fontFamily==="Arial,sans-serif"?"selected":""}>Arial (modern)</option>
+        <option value="Verdana,sans-serif" ${v.fontFamily==="Verdana,sans-serif"?"selected":""}>Verdana (rund)</option>
+        <option value="Courier New,monospace" ${v.fontFamily==="Courier New,monospace"?"selected":""}>Courier (Schreibmaschine)</option>
+        <option value="Palatino,serif" ${v.fontFamily==="Palatino,serif"?"selected":""}>Palatino (elegant)</option>
+      </select>
+      <div class="modal-btns" style="margin-top:14px;">
+        <button class="btn-cancel" onclick="closeModal();">Abbrechen</button>
+        <button class="btn-save" style="background:${t.ac};" onclick="doSaveGift();">${g?"Speichern":"Hinzufügen"}</button>
+      </div>`;
+  }
+  const wrap=document.createElement("div");wrap.id="modal-overlay";wrap.className="overlay";
+  wrap.onclick=e=>{if(e.target===wrap)closeModal();};
+  wrap.innerHTML=`<div class="modal">${body}</div>`;
+  document.body.appendChild(wrap);
+  setTimeout(()=>wrap.querySelector("input,button")?.focus(),40);
+  wrap.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+}
+
+function handleUpload(input){
+  const file=input.files[0];if(!file)return;
+  const loading=document.getElementById("m-img-loading"),prev=document.getElementById("m-imgprev"),lbl=document.getElementById("m-upload-lbl");
+  if(loading)loading.style.display="block";if(prev)prev.style.display="none";
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=500;let w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+      canvas.getContext("2d").drawImage(img,0,0,w,h);
+      const b64=canvas.toDataURL("image/jpeg",.7);
+      document.getElementById("m-gimg").value=b64;
+      document.getElementById("m-imgprev-img").src=b64;
+      if(prev)prev.style.display="";if(loading)loading.style.display="none";
+      if(lbl)lbl.textContent="✅ Foto ausgewählt";
+    };img.src=e.target.result;
+  };reader.readAsDataURL(file);
+}
+function clearUpload(){document.getElementById("m-gimg").value="";document.getElementById("m-imgprev").style.display="none";document.getElementById("m-upload-lbl").textContent="📁 JPG oder PNG auswählen";document.getElementById("m-gfile").value="";}
+
+async function doLogin(){const email=document.getElementById("m-email")?.value||"";const pw=document.getElementById("m-pw")?.value||"";await doFirebaseLogin(email,pw);}
+async function doSetPw(){const pw1=document.getElementById("m-pw1")?.value||"",pw2=document.getElementById("m-pw2")?.value||"";const err=document.getElementById("m-err");if(pw1.length<4){err.textContent="Mindestens 4 Zeichen!";return;}if(pw1!==pw2){err.textContent="Nicht identisch!";return;}data.adminPassword=pw1;isAdmin=true;saveAdmin();closeModal();await saveData();render();showNotif("Passwort gesetzt!");}
+async function doSaveGift(){const name=(document.getElementById("m-gname")?.value||"").trim();if(!name){showNotif("Bitte Namen eingeben!");return;}const gid=document.getElementById("m-gid")?.value;const gift={id:gid?parseInt(gid):Date.now(),name,emoji:document.getElementById("m-gemoji")?.value||"🎁",price:document.getElementById("m-gprice")?.value||"",description:document.getElementById("m-gdesc")?.value||"",imageUrl:document.getElementById("m-gimg")?.value||"",productUrl:document.getElementById("m-glink")?.value||"",cardBg:document.getElementById("m-gcardBg")?.value||"#ffffff",textColor:document.getElementById("m-gtextColor")?.value||"",imgBg:document.getElementById("m-gimgBg")?.value||"#f5ede4",fontFamily:document.getElementById("m-gfont")?.value||"Georgia,serif"};if(gid){data.gifts=data.gifts.map(g=>g.id===parseInt(gid)?gift:g);showNotif("Artikel aktualisiert!");}else{data.gifts.push(gift);showNotif("Artikel hinzugefügt!");}closeModal();await saveData();}
+
+function openDesign(){
+  const t=THEMES[data.design.theme]||THEMES.warm;
+  const swatches=Object.entries(THEMES).map(([k,th])=>`<div class="swatch${data.design.theme===k?" active":""}" id="sw-${k}" onclick="selTheme('${k}');" style="border-color:${data.design.theme===k?th.ac:"#eee"};"><div class="swatch-inner" style="background:${th.bg};"><div class="swatch-dot" style="background:${th.ac};"></div><div class="swatch-name" style="color:${th.text};">${th.name}</div></div></div>`).join("");
+  const div=document.createElement("div");div.id="design-overlay";div.className="overlay";
+  div.onclick=e=>{if(e.target===div)div.remove();};
+  div.innerHTML=`<div class="modal" style="max-width:460px;"><h2 style="color:#222;">🎨 Design anpassen</h2>
+    <label style="color:#888;">Farbthema</label><div class="theme-grid">${swatches}</div>
+    <label style="color:#888;">Titel</label><input id="d-title" value="${esc(data.design.headerText)}" style="background:#fafafa;border:1.5px solid #e0e0e0;color:#333;margin-top:4px;"/>
+    <label style="color:#888;">Untertitel</label><input id="d-sub" value="${esc(data.design.headerSub)}" style="background:#fafafa;border:1.5px solid #e0e0e0;color:#333;margin-top:4px;"/>
+    <label style="color:#888;margin-top:8px;display:block;">🖼️ Hintergrundbild URL</label>
+    <input id="d-bg" value="${esc(data.design.bgUrl||"")}" placeholder="https://..." style="background:#fafafa;border:1.5px solid #e0e0e0;color:#333;font-family:sans-serif;font-size:12px;margin-top:4px;"/>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn-cancel" onclick="document.getElementById('design-overlay').remove();">Abbrechen</button>
+      <button class="btn-save" style="background:${t.ac};" onclick="applyDesign();">Übernehmen</button>
+    </div></div>`;
+  document.body.appendChild(div);
+}
+function selTheme(k){data.design.theme=k;document.querySelectorAll(".swatch").forEach(el=>{const key=el.id.replace("sw-","");el.classList.toggle("active",key===k);el.style.borderColor=key===k?THEMES[key].ac:"#eee";});}
+async function applyDesign(){data.design.headerText=document.getElementById("d-title")?.value||data.design.headerText;data.design.headerSub=document.getElementById("d-sub")?.value||data.design.headerSub;data.design.bgUrl=document.getElementById("d-bg")?.value||"";document.getElementById("design-overlay")?.remove();await saveData();render();showNotif("🎨 Design gespeichert!");}
+
+function renderSetup(){
+  document.body.style.background="#fdf6ee";
+  document.getElementById("root").innerHTML=`
+  <div style="max-width:580px;margin:0 auto;padding:40px 20px 80px;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-size:48px;margin-bottom:8px;">🎁</div>
+      <h1 style="font-size:26px;color:#3d2b1f;font-weight:normal;margin-bottom:6px;">Firebase einrichten</h1>
+      <p style="color:#8c6a52;font-style:italic;font-size:14px;">Einmalig 5 Minuten – dann funktioniert alles</p>
+    </div>
+    <div style="background:white;border-radius:18px;padding:28px;box-shadow:0 4px 24px rgba(0,0,0,.08);">
+      <div style="display:flex;gap:16px;margin-bottom:20px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#c97d4e;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">1</div>
+        <div>
+          <div style="font-size:15px;margin-bottom:4px;">Gehe zu <a href="https://console.firebase.google.com" target="_blank" style="color:#5b7ec9;">console.firebase.google.com</a></div>
+          <div style="font-size:13px;color:#888;">Mit deinem Google-Konto einloggen → <strong>„Projekt erstellen"</strong></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:20px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#c97d4e;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">2</div>
+        <div>
+          <div style="font-size:15px;margin-bottom:4px;">Projektname eingeben</div>
+          <div style="font-size:13px;color:#888;">z.B. <strong>„geschenkeliste"</strong> → Weiter → Weiter → Projekt erstellen</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:20px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#c97d4e;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">3</div>
+        <div>
+          <div style="font-size:15px;margin-bottom:4px;">Realtime Database aktivieren</div>
+          <div style="font-size:13px;color:#888;">Links im Menü: <strong>„Erstellen" → „Realtime Database"</strong> → „Datenbank erstellen" → Standort: Europe → „Im Testmodus starten"</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:20px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#c97d4e;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">4</div>
+        <div>
+          <div style="font-size:15px;margin-bottom:4px;">Web-App hinzufügen</div>
+          <div style="font-size:13px;color:#888;">Zahnrad oben links → <strong>„Projekteinstellungen"</strong> → ganz unten: <strong>„App hinzufügen" → „Web" (&lt;/&gt;)</strong> → App-Nickname eingeben → Registrieren</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:20px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#c97d4e;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">5</div>
+        <div>
+          <div style="font-size:15px;margin-bottom:4px;">Config in die HTML-Datei eintragen</div>
+          <div style="font-size:13px;color:#888;">Du siehst einen Code-Block mit <strong>firebaseConfig</strong> → diese Werte in die HTML-Datei bei <strong>„DEIN_API_KEY"</strong> usw. eintragen → Datei speichern → auf Netlify hochladen</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:0;">
+        <div style="width:32px;height:32px;border-radius:50%;background:#e53935;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;font-family:sans-serif;">6</div>
+        <div>
+          <div style="font-size:15px;margin-bottom:4px;">🔒 Security Rules einrichten <strong style="color:#e53935;">(wichtig!)</strong></div>
+          <div style="font-size:13px;color:#888;">
+            Firebase Console → Realtime Database → Reiter <strong>„Regeln"</strong> → Inhalt ersetzen durch die Rules im Admin-Panel (nach dem Login auf <strong>🔒 Security Rules</strong> klicken) → <strong>„Veröffentlichen"</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="background:#fff8f2;border:1.5px solid #e8d5c4;border-radius:14px;padding:16px;margin-top:16px;font-size:13px;color:#8c6a52;line-height:1.6;">
+      💡 <strong>Danach:</strong> Der Link ist kurz, die Daten werden sicher gespeichert, Echtzeit-Updates funktionieren und kein Login für deine Freunde nötig!
+    </div>
+  </div>`;
+}
+
+setTimeout(updateCartBar, 100);
+window.doSetName=doSetName;window.doSaveText=doSaveText;window.doRemoveText=doRemoveText;window.selSize=selSize;window.toggleStyle=toggleStyle;window.doSaveHBlock=doSaveHBlock;window.openConfirmModal=openConfirmModal;window.confirmAndPay=confirmAndPay;window.downloadSummary=downloadSummary;window.doSaveBank=doSaveBank;window.unlockUser=unlockUser;window.removeHBlock=removeHBlock;window.doSaveHImg=doSaveHImg;window.removeHImg=removeHImg;window.handleHImgUpload=handleHImgUpload;window.clearHImg=clearHImg;window.removeHImgItem=removeHImgItem;window.selColor=selColor;window.selColorCustom=selColorCustom;window.doClaim=doClaim;window.doUnclaim=doUnclaim;window.doRemove=doRemove;
+window.openModal=openModal;window.closeModal=closeModal;window.doLogin=doLogin;window.doSetPw=doSetPw;
+window.doSaveGift=doSaveGift;window.handleUpload=handleUpload;window.clearUpload=clearUpload;
+window.openDesign=openDesign;window.selTheme=selTheme;window.applyDesign=applyDesign;
+window.logoutAdmin=logoutAdmin;
+
+init();
+</script>
+</body>
+</html>
