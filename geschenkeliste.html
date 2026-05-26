@@ -110,7 +110,7 @@ const firebaseConfig = {
 // ================================================================
 
 
-const auth = getAuth(); 
+
 
 
 const THEMES={
@@ -160,7 +160,7 @@ async function init(){
   if(!configOk()){renderSetup();return;}
   showLoader();
   try{
-    const app=initializeApp(firebaseConfig);
+    const app=initializeApp(firebaseConfig);const auth=getAuth(app);
     db=getDatabase(app);
     dataRef=ref(db,"geschenkeliste");
     // Echtzeit-Updates
