@@ -93,6 +93,7 @@ footer{text-align:center;margin-top:48px;font-size:11px;font-family:sans-serif;o
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"; "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // ================================================================
 // ⚙️ DEINE FIREBASE-KONFIGURATION — hier eintragen!
@@ -111,7 +112,7 @@ const firebaseConfig = {
 // ================================================================
 // 🔐 ADMIN-PASSWORT — nur hier ändern, nie in Firebase sichtbar!
 // ================================================================
-const ADMIN_PASSWORD_HASH = "hash:zgf7va"; // <- Dein Passwort eintragen
+const auth = getAuth(); = "hash:zgf7va"; // <- Dein Passwort eintragen
 // ================================================================
 
 const THEMES={
@@ -123,13 +124,18 @@ const THEMES={
   candy:{name:"🍬 Candy",bg:"#fff9fe",ac:"#a855f7",card:"#fff",text:"#2e1a47",sub:"#7c3aed",tag:"#f3e8ff",brd:"#e0c8f8"}
 };
 
-// Simple hash function for password comparison
-function simpleHash(str){
-  let hash=0;
-  for(let i=0;i<str.length;i++){hash=((hash<<5)-hash)+str.charCodeAt(i);hash|=0;}
-  return Math.abs(hash).toString(36);
+
+async function doFirebaseLogin(email, pw){
+  try{
+    await signInWithEmailAndPassword(auth, email, pw);
+    isAdmin=true;
+    closeModal();
+    render();
+    showNotif("👑 Willkommen, Admin!");
+  }catch(e){
+    document.getElementById("m-err").textContent="Falsches Passwort oder E-Mail!";
+  }
 }
-function checkAdminPassword(pw){
   // Compare against hardcoded hash
   if(ADMIN_PASSWORD_HASH.startsWith("hash:")){
     return simpleHash(pw)===ADMIN_PASSWORD_HASH.slice(5);
@@ -142,14 +148,18 @@ let userName="",isAdmin=false,notifTimer=null,isSaving=false;
 let db,dataRef;
 
 // Admin-Session
-function restoreAdmin(){try{const s=localStorage.getItem("gl-adm");if(s&&checkAdminPassword(s))isAdmin=true;}catch(e){}}
-function saveAdmin(){try{const pw=document.getElementById("m-pw")?.value||ADMIN_PASSWORD_HASH;localStorage.setItem("gl-adm",pw);}catch(e){}}
+function restoreAdmin(){
+  onAuthStateChanged(auth,(user)=>{
+    isAdmin=!!user;
+    render();
+  });
+
+function saveAdmin(){}
 function logoutAdmin(){
+  signOut(auth);
   isAdmin=false;
-  try{localStorage.removeItem("gl-adm");}catch(e){}
   render();
 }
-
 // Prüfe ob Config eingetragen wurde
 function configOk(){return firebaseConfig.apiKey!=="DEIN_API_KEY";}
 
@@ -650,7 +660,7 @@ function openModal(type,giftId){
         <button class="btn-save" style="background:${t.ac};" onclick="doSaveBank();">Speichern</button>
       </div>`;
   }
-  else if(type==="login"){body=`<h2>🔑 Admin-Anmeldung</h2><label>Passwort</label><input type="password" id="m-pw" placeholder="Passwort..." onkeydown="if(event.key==='Enter')doLogin();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doLogin();">Anmelden</button></div>`;}
+ else if(type==="login"){body=`<h2>🔑 Admin-Anmeldung</h2><label>E-Mail</label><input type="email" id="m-email" placeholder="deine@email.de" style="margin-bottom:8px;"/><label>Passwort</label><input type="password" id="m-pw" placeholder="Passwort..." onkeydown="if(event.key==='Enter')doLogin();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doLogin();">Anmelden</button></div>`;}
   else if(type==="setpw"){body=`<h2>🔐 Admin-Passwort</h2><label>Neues Passwort (min. 4 Zeichen)</label><input type="password" id="m-pw1" placeholder="Passwort..."/><label>Wiederholen</label><input type="password" id="m-pw2" placeholder="Wiederholen..." onkeydown="if(event.key==='Enter')doSetPw();"/><div id="m-err" class="err"></div><div class="modal-btns"><button class="btn-cancel" onclick="closeModal();">Abbrechen</button><button class="btn-save" style="background:${t.ac};" onclick="doSetPw();">Festlegen</button></div>`;}
   else if(type==="text"){
     const b=giftId?((data.textBlocks||[]).find(x=>x.id===giftId)):null;
@@ -850,7 +860,7 @@ function handleUpload(input){
 }
 function clearUpload(){document.getElementById("m-gimg").value="";document.getElementById("m-imgprev").style.display="none";document.getElementById("m-upload-lbl").textContent="📁 JPG oder PNG auswählen";document.getElementById("m-gfile").value="";}
 
-async function doLogin(){const pw=document.getElementById("m-pw")?.value||"";if(checkAdminPassword(pw)){isAdmin=true;saveAdmin();closeModal();render();showNotif("👑 Willkommen, Admin!");}else document.getElementById("m-err").textContent="Falsches Passwort!";}
+async function doLogin(){const email=document.getElementById("m-email")?.value||"";const pw=document.getElementById("m-pw")?.value||"";await doFirebaseLogin(email,pw);}
 async function doSetPw(){const pw1=document.getElementById("m-pw1")?.value||"",pw2=document.getElementById("m-pw2")?.value||"";const err=document.getElementById("m-err");if(pw1.length<4){err.textContent="Mindestens 4 Zeichen!";return;}if(pw1!==pw2){err.textContent="Nicht identisch!";return;}data.adminPassword=pw1;isAdmin=true;saveAdmin();closeModal();await saveData();render();showNotif("Passwort gesetzt!");}
 async function doSaveGift(){const name=(document.getElementById("m-gname")?.value||"").trim();if(!name){showNotif("Bitte Namen eingeben!");return;}const gid=document.getElementById("m-gid")?.value;const gift={id:gid?parseInt(gid):Date.now(),name,emoji:document.getElementById("m-gemoji")?.value||"🎁",price:document.getElementById("m-gprice")?.value||"",description:document.getElementById("m-gdesc")?.value||"",imageUrl:document.getElementById("m-gimg")?.value||"",productUrl:document.getElementById("m-glink")?.value||"",cardBg:document.getElementById("m-gcardBg")?.value||"#ffffff",textColor:document.getElementById("m-gtextColor")?.value||"",imgBg:document.getElementById("m-gimgBg")?.value||"#f5ede4",fontFamily:document.getElementById("m-gfont")?.value||"Georgia,serif"};if(gid){data.gifts=data.gifts.map(g=>g.id===parseInt(gid)?gift:g);showNotif("Artikel aktualisiert!");}else{data.gifts.push(gift);showNotif("Artikel hinzugefügt!");}closeModal();await saveData();}
 
