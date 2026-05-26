@@ -469,11 +469,16 @@ function selColorCustom(hiddenId,color){
 }
 async function unlockUser(name){
   if(!data.lockedUsers)return;
-  delete data.lockedUsers[name];
-  await saveData();
-  showNotif("🔓 "+name+" entsperrt!");
-  closeModal();
-  openModal("unlock");
+  try{
+    await remove(ref(db,`geschenkeliste/lockedUsers/${name}`));
+    delete data.lockedUsers[name];
+    showNotif("🔓 "+name+" entsperrt!");
+    closeModal();
+    openModal("unlock");
+  }catch(e){
+    showNotif("❌ Fehler: "+e.message);
+    console.error(e);
+  }
 }
 
 async function doSaveBank(){
