@@ -95,7 +95,7 @@ footer{text-align:center;margin-top:48px;font-size:11px;font-family:sans-serif;o
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ================================================================
@@ -440,10 +440,12 @@ function openConfirmModal(){
 
 async function confirmAndPay(){
   document.getElementById("confirm-overlay")?.remove();
-  if(!data.lockedUsers)data.lockedUsers={};
-  data.lockedUsers[userName]=true;
-  await saveData();
-  try{localStorage.setItem("gl-username-locked","true");}catch(e){}
+  try{
+    await set(ref(db,`geschenkeliste/lockedUsers/${userName}`),true);
+    if(!data.lockedUsers)data.lockedUsers={};
+    data.lockedUsers[userName]=true;
+    try{localStorage.setItem("gl-username-locked","true");}catch(e){}
+  }catch(e){console.error("Lock error:",e);}
   openModal("cart");
 }
 
