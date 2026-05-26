@@ -136,13 +136,7 @@ async function doFirebaseLogin(email, pw){
     document.getElementById("m-err").textContent="Falsches Passwort oder E-Mail!";
   }
 }
-  // Compare against hardcoded hash
-  if(ADMIN_PASSWORD_HASH.startsWith("hash:")){
-    return simpleHash(pw)===ADMIN_PASSWORD_HASH.slice(5);
-  }
-  // Plain text comparison (first time setup)
-  return pw===ADMIN_PASSWORD_HASH;
-}
+ 
 let data={gifts:[],claims:{},adminPassword:"",design:{theme:"warm",headerText:"🎁 Artikelliste",headerSub:"Wähle ein Geschenk und markiere es als deins",bgUrl:""}};
 let userName="",isAdmin=false,notifTimer=null,isSaving=false;
 let db,dataRef;
