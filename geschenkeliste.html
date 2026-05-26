@@ -93,7 +93,7 @@ footer{text-align:center;margin-top:48px;font-size:11px;font-family:sans-serif;o
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"; "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"; 
 
 // ================================================================
 // ⚙️ DEINE FIREBASE-KONFIGURATION — hier eintragen!
@@ -145,6 +145,7 @@ function restoreAdmin(){
     isAdmin=!!user;
     render();
   });
+  }
 
 function saveAdmin(){}
 function logoutAdmin(){
