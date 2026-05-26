@@ -137,7 +137,7 @@ async function doFirebaseLogin(email, pw){
  
 let data={gifts:[],claims:{},adminPassword:"",design:{theme:"warm",headerText:"🎁 Artikelliste",headerSub:"Wähle ein Geschenk und markiere es als deins",bgUrl:""}};
 let userName="",isAdmin=false,notifTimer=null,isSaving=false;
-let db,dataRef;
+let db,dataRef,auth;
 
 // Admin-Session
 function restoreAdmin(){
@@ -159,8 +159,7 @@ function configOk(){return firebaseConfig.apiKey!=="DEIN_API_KEY";}
 async function init(){
   if(!configOk()){renderSetup();return;}
   showLoader();
-  try{
-    const app=initializeApp(firebaseConfig);const auth=getAuth(app);
+  try{const app=initializeApp(firebaseConfig);auth=getAuth(app);
     db=getDatabase(app);
     dataRef=ref(db,"geschenkeliste");
     // Echtzeit-Updates
