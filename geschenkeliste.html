@@ -255,11 +255,19 @@ function getSavedName(){try{return localStorage.getItem("gl-username")||"";}catc
 async function doClaim(id){
   if(!userName){showNotif("Bitte gib deinen Namen ein!");return;}
   if(data.lockedUsers&&data.lockedUsers[userName]){showNotif("❌ Deine Auswahl ist bereits abgeschlossen!");return;}
-  data.claims[id]=userName;await saveData();showNotif("🎉 Reserviert!");updateCartBar();
+  try{
+    await set(ref(db,`geschenkeliste/claims/${id}`),userName);
+    data.claims[id]=userName;
+    showNotif("🎉 Reserviert!");updateCartBar();
+  }catch(e){showNotif("❌ Fehler: "+e.message);console.error(e);}
 }
 async function doUnclaim(id){
   if(data.lockedUsers&&data.lockedUsers[userName]){showNotif("❌ Deine Auswahl ist bereits abgeschlossen!");return;}
-  delete data.claims[id];await saveData();showNotif("↩️ Freigegeben");updateCartBar();
+  try{
+    await remove(ref(db,`geschenkeliste/claims/${id}`));
+    delete data.claims[id];
+    showNotif("↩️ Freigegeben");updateCartBar();
+  }catch(e){showNotif("❌ Fehler: "+e.message);console.error(e);}
 }
 
 function downloadSummary(){
