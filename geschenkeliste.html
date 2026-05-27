@@ -310,6 +310,7 @@ function updateCartBar(){
   const old=document.getElementById('cart-bar');
   if(old)old.remove();
   if(!userName)return;
+if(data.lockedUsers&&data.lockedUsers[userName])return;
   const t=THEMES[data.design.theme]||THEMES.warm;
   const myItems=data.gifts.filter(g=>data.claims[g.id]===userName);
   if(!myItems.length)return;
@@ -467,7 +468,7 @@ function selColorCustom(hiddenId,color){
   const row=document.getElementById(hiddenId)?.closest?document.getElementById(hiddenId+'-picker')?.closest('.color-row'):null;
   if(row)row.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));
 }
-async function unlockUser(name){
+ async function unlockUser(name){
   if(!data.lockedUsers)return;
   try{
     await remove(ref(db,`geschenkeliste/lockedUsers/${name}`));
@@ -479,8 +480,7 @@ async function unlockUser(name){
     showNotif("❌ Fehler: "+e.message);
     console.error(e);
   }
-}
-
+} 
 async function doSaveBank(){
   data.bankAccount={
     name:document.getElementById("m-bname")?.value||"",
